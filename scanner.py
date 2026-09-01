@@ -1,17 +1,65 @@
 import requests
 import pandas as pd
 import time
+import os
 
-# OKX'ten mum verisi
+
+# ==============================
+# TELEGRAM BİLDİRİM
+# ==============================
+
+def send_telegram(message):
+
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    if not bot_token or not chat_id:
+        print("Telegram bilgileri bulunamadı.")
+        return
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+
+    data = {
+        "chat_id": chat_id,
+        "text": message
+    }
+
+    try:
+        response = requests.post(
+            url,
+            data=data,
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            print("Telegram bildirimi gönderildi.")
+        else:
+            print("Telegram hatası:", response.text)
+
+    except Exception as e:
+        print("Telegram bağlantı hatası:", e)
+
+
+# ==============================
+# OKX'TEN MUM VERİSİ
+# ==============================
+
 def get_candles(inst_id, limit=250):
+
     url = "https://www.okx.com/api/v5/market/candles"
+
     params = {
         "instId": inst_id,
         "bar": "15m",
         "limit": str(limit)
     }
 
-    response = requests.get(url, params=params, timeout=10)
+    response = requests.get(
+        url,
+        params=params,
+        timeout=10
+    )
+
     data = response.json()
 
     if data.get("code") != "0":
@@ -22,8 +70,15 @@ def get_candles(inst_id, limit=250):
     df = pd.DataFrame(
         candles,
         columns=[
-            "ts", "open", "high", "low", "close",
-            "vol", "volCcy", "volCcyQuote", "confirm"
+            "ts",
+            "open",
+            "high",
+            "low",
+            "close",
+            "vol",
+            "volCcy",
+            "volCcyQuote",
+            "confirm"
         ]
     )
 
@@ -35,8 +90,12 @@ def get_candles(inst_id, limit=250):
     return df
 
 
+# ==============================
 # RSI 14
+# ==============================
+
 def calculate_rsi(close, period=14):
+
     delta = close.diff()
 
     gain = delta.clip(lower=0)
@@ -53,19 +112,31 @@ def calculate_rsi(close, period=14):
     ).mean()
 
     rs = avg_gain / avg_loss
+
     return 100 - (100 / (1 + rs))
 
 
+# ==============================
 # EMA 200
+# ==============================
+
 def calculate_ema(close, period=200):
+
     return close.ewm(
         span=period,
         adjust=False
     ).mean()
 
 
-# Supertrend 10 / 3
-def calculate_supertrend(df, period=10, multiplier=3.0):
+# ==============================
+# SUPERTREND 10 / 3
+# ==============================
+
+def calculate_supertrend(
+    df,
+    period=10,
+    multiplier=3.0
+):
 
     high = df["high"]
     low = df["low"]
@@ -75,7 +146,11 @@ def calculate_supertrend(df, period=10, multiplier=3.0):
     tr2 = abs(high - close.shift())
     tr3 = abs(low - close.shift())
 
-    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+    tr = pd.concat(
+        [tr1, tr2, tr3],
+        axis=1
+    ).max(axis=1)
+
     atr = tr.ewm(
         alpha=1 / period,
         adjust=False
@@ -89,17 +164,26 @@ def calculate_supertrend(df, period=10, multiplier=3.0):
     direction = [1] * len(df)
 
     for i in range(1, len(df)):
+
         if close.iloc[i] > upper.iloc[i - 1]:
             direction[i] = -1
+
         elif close.iloc[i] < lower.iloc[i - 1]:
             direction[i] = 1
+
         else:
             direction[i] = direction[i - 1]
 
-    return pd.Series(direction, index=df.index)
+    return pd.Series(
+        direction,
+        index=df.index
+    )
 
 
-# UT Bot ATR 10 / Sensitivity 1
+# ==============================
+# UT BOT ATR 10 / SENSITIVITY 1
+# ==============================
+
 def calculate_utbot(df):
 
     close = df["close"]
@@ -107,7 +191,10 @@ def calculate_utbot(df):
     atr = (
         df["high"]
         .sub(df["low"])
-        .ewm(alpha=1 / 10, adjust=False)
+        .ewm(
+            alpha=1 / 10,
+            adjust=False
+        )
         .mean()
     )
 
@@ -115,7 +202,9 @@ def calculate_utbot(df):
 
     trailing_stop = [0.0] * len(df)
 
-    trailing_stop[0] = close.iloc[0] - nloss.iloc[0]
+    trailing_stop[0] = (
+        close.iloc[0] - nloss.iloc[0]
+    )
 
     for i in range(1, len(df)):
 
@@ -125,6 +214,7 @@ def calculate_utbot(df):
             close.iloc[i] > previous_stop
             and close.iloc[i - 1] > previous_stop
         ):
+
             trailing_stop[i] = max(
                 previous_stop,
                 close.iloc[i] - nloss.iloc[i]
@@ -134,26 +224,39 @@ def calculate_utbot(df):
             close.iloc[i] < previous_stop
             and close.iloc[i - 1] < previous_stop
         ):
+
             trailing_stop[i] = min(
                 previous_stop,
                 close.iloc[i] + nloss.iloc[i]
             )
 
         elif close.iloc[i] > previous_stop:
-            trailing_stop[i] = close.iloc[i] - nloss.iloc[i]
+
+            trailing_stop[i] = (
+                close.iloc[i] - nloss.iloc[i]
+            )
 
         else:
-            trailing_stop[i] = close.iloc[i] + nloss.iloc[i]
+
+            trailing_stop[i] = (
+                close.iloc[i] + nloss.iloc[i]
+            )
 
     trailing_stop = pd.Series(
         trailing_stop,
         index=df.index
     )
 
-    return close > trailing_stop, close < trailing_stop
+    return (
+        close > trailing_stop,
+        close < trailing_stop
+    )
 
 
-# Tek coin kontrolü
+# ==============================
+# TEK COIN KONTROLÜ
+# ==============================
+
 def check_coin(inst_id):
 
     df = get_candles(inst_id)
@@ -161,8 +264,15 @@ def check_coin(inst_id):
     if df is None or len(df) < 210:
         return None
 
-    df["rsi"] = calculate_rsi(df["close"], 14)
-    df["ema200"] = calculate_ema(df["close"], 200)
+    df["rsi"] = calculate_rsi(
+        df["close"],
+        14
+    )
+
+    df["ema200"] = calculate_ema(
+        df["close"],
+        200
+    )
 
     df["supertrend"] = calculate_supertrend(
         df,
@@ -212,7 +322,10 @@ def check_coin(inst_id):
     return None
 
 
-# OKX USDT paritelerini al
+# ==============================
+# OKX USDT PARİTELERİ
+# ==============================
+
 def get_symbols():
 
     url = "https://www.okx.com/api/v5/public/instruments"
@@ -237,13 +350,19 @@ def get_symbols():
             item.get("quoteCcy") == "USDT"
             and item.get("state") == "live"
         ):
-            symbols.append(item["instId"])
+
+            symbols.append(
+                item["instId"]
+            )
 
     return symbols
 
 
-# Ana tarama
-if __name__ == "__main__":
+# ==============================
+# ANA TARAMA
+# ==============================
+
+if _name_ == "_main_":
 
     symbols = get_symbols()
 
@@ -259,9 +378,16 @@ if __name__ == "__main__":
 
             if signal:
 
-                print(
-                    f"{signal} SİNYALİ: {symbol}"
+                message = (
+                    f"🚨 KRİPTO SİNYALİ 🚨\n\n"
+                    f"{signal} SİNYALİ: {symbol}\n\n"
+                    f"📊 Zaman dilimi: 15 dakika\n"
+                    f"📈 RSI + EMA 200 + Supertrend + UT Bot"
                 )
+
+                print(message)
+
+                send_telegram(message)
 
         except Exception as e:
 
