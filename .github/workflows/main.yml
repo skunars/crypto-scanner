@@ -1,0 +1,25 @@
+name: OKX Crypto Scanner
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu indir
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Gerekli paketleri kur
+        run: pip install -r requirements.txt
+
+      - name: Tarayıcıyı çalıştır
+        run: python scanner.py
