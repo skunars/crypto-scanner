@@ -243,7 +243,7 @@ def get_symbols():
 
 
 # Ana tarama
-if _name_ == "_main_":
+if __name__ == "__main__":
 
     symbols = get_symbols()
 
