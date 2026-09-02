@@ -254,6 +254,91 @@ def calculate_utbot(df):
 
 
 # ==============================
+# SİNYAL GÜÇ SKORU
+# ==============================
+
+def calculate_signal_score(row, signal):
+
+    score = 0
+
+    rsi = row["rsi"]
+    close = row["close"]
+    ema200 = row["ema200"]
+
+    ema_distance = (
+        (close - ema200) / ema200
+    ) * 100
+
+    # RSI gücü
+    if signal == "AL":
+
+        if rsi >= 60:
+            score += 30
+        elif rsi >= 55:
+            score += 20
+        elif rsi > 50:
+            score += 10
+
+        # EMA mesafesi
+        if ema_distance >= 3:
+            score += 30
+        elif ema_distance >= 1:
+            score += 20
+        elif ema_distance > 0:
+            score += 10
+
+        # Supertrend
+        if row["supertrend"] == -1:
+            score += 20
+
+        # UT Bot
+        if row["ut_bull"]:
+            score += 20
+
+    elif signal == "SAT":
+
+        if rsi <= 40:
+            score += 30
+        elif rsi <= 45:
+            score += 20
+        elif rsi < 50:
+            score += 10
+
+        # EMA mesafesi
+        if ema_distance <= -3:
+            score += 30
+        elif ema_distance <= -1:
+            score += 20
+        elif ema_distance < 0:
+            score += 10
+
+        # Supertrend
+        if row["supertrend"] == 1:
+            score += 20
+
+        # UT Bot
+        if row["ut_bear"]:
+            score += 20
+
+    return score
+
+
+def get_score_text(score):
+
+    if score >= 80:
+        return "ÇOK GÜÇLÜ"
+
+    elif score >= 60:
+        return "GÜÇLÜ"
+
+    elif score >= 40:
+        return "ORTA"
+
+    else:
+        return "ZAYIF"
+
+
+# ==============================
 # TEK COIN KONTROLÜ
 # ==============================
 
@@ -314,10 +399,22 @@ def check_coin(inst_id):
     )
 
     if buy and not previous_buy:
-        return "AL"
+
+        score = calculate_signal_score(
+            last,
+            "AL"
+        )
+
+        return "AL", score, last
 
     if sell and not previous_sell:
-        return "SAT"
+
+        score = calculate_signal_score(
+            last,
+            "SAT"
+        )
+
+        return "SAT", score, last
 
     return None
 
@@ -362,7 +459,7 @@ def get_symbols():
 # ANA TARAMA
 # ==============================
 
-if __name__ == "__main__":
+if _name_ == "_main_":
 
     symbols = get_symbols()
 
@@ -374,15 +471,36 @@ if __name__ == "__main__":
 
         try:
 
-            signal = check_coin(symbol)
+            result = check_coin(symbol)
 
-            if signal:
+            if result:
+
+                signal, score, row = result
+
+                score_text = get_score_text(score)
+
+                if signal == "AL":
+                    emoji = "🟢"
+                else:
+                    emoji = "🔴"
+
+                ema_distance = (
+                    (row["close"] - row["ema200"])
+                    / row["ema200"]
+                ) * 100
 
                 message = (
                     f"🚨 KRİPTO SİNYALİ 🚨\n\n"
-                    f"{signal} SİNYALİ: {symbol}\n\n"
-                    f"📊 Zaman dilimi: 15 dakika\n"
-                    f"📈 RSI + EMA 200 + Supertrend + UT Bot"
+                    f"{emoji} {signal} SİNYALİ: {symbol}\n\n"
+                    f"🎯 Sinyal Gücü: {score}/100\n"
+                    f"💪 {score_text}\n\n"
+                    f"📊 RSI: {row['rsi']:.2f}\n"
+                    f"📈 EMA 200 mesafesi: {ema_distance:.2f}%\n"
+                    f"📉 Supertrend: "
+                    f"{'🟢 Yükseliş' if signal == 'AL' else '🔴 Düşüş'}\n"
+                    f"🤖 UT Bot: "
+                    f"{'🟢 AL' if signal == 'AL' else '🔴 SAT'}\n\n"
+                    f"⏱️ Zaman dilimi: 15 dakika"
                 )
 
                 print(message)
