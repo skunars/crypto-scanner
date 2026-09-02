@@ -52,7 +52,10 @@ jobs:
 
           if ! git diff --cached --quiet; then
             git commit -m "Update paper trades"
-            git push
+
+            git pull --rebase origin main
+
+            git push origin main
           else
             echo "Sanal işlem dosyasında değişiklik yok."
           fi
