@@ -185,5 +185,39 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "CHIP-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.04231,
+    "sl": 0.0414638,
+    "tp1": 0.0435793,
+    "tp2": 0.0448486,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 80,
+    "entry_time": "2026-09-02T21:55:20.442415+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "DATA-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.189,
+    "sl": 0.18522,
+    "tp1": 0.19467,
+    "tp2": 0.20034000000000002,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 80,
+    "entry_time": "2026-09-02T21:55:52.902788+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
