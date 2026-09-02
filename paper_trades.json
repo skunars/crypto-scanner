@@ -287,5 +287,22 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "ARB-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.12362,
+    "sl": 0.1211476,
+    "tp1": 0.1273286,
+    "tp2": 0.1310372,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 90,
+    "entry_time": "2026-09-02T22:56:17.571465+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
