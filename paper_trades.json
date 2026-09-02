@@ -219,5 +219,39 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "FLR-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.006758,
+    "sl": 0.00662284,
+    "tp1": 0.00696074,
+    "tp2": 0.007163480000000001,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 90,
+    "entry_time": "2026-09-02T22:14:14.900865+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "USAT-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 1.0002,
+    "sl": 0.980196,
+    "tp1": 1.030206,
+    "tp2": 1.060212,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 90,
+    "entry_time": "2026-09-02T22:15:43.487320+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
