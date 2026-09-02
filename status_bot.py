@@ -127,4 +127,4 @@ def format_price(price):
     if price >= 1:
         return f"{price:.4f}".rstrip("0").rstrip(".")
 
-    return f"{price:.8f}".
+    return f"{price:.8f}"
