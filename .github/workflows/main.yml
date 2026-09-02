@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Kodu indir
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Python kur
         uses: actions/setup-python@v5
@@ -41,6 +43,10 @@ jobs:
           fi
 
           echo "paper_trades.json hazır."
+          echo "Dosya boyutu:"
+          wc -c paper_trades.json
+
+          echo "Dosya içeriği:"
           cat paper_trades.json
 
       - name: Sanal işlem kayıtlarını GitHub'a kaydet
@@ -50,12 +56,14 @@ jobs:
 
           git add -f paper_trades.json
 
-          if ! git diff --cached --quiet; then
-            git commit -m "Update paper trades"
-
-            git pull --rebase origin main
-
-            git push origin main
-          else
+          if git diff --cached --quiet; then
             echo "Sanal işlem dosyasında değişiklik yok."
+            exit 0
           fi
+
+          git commit -m "Update paper trades"
+
+          git fetch origin main
+          git rebase origin/main
+
+          git push origin HEAD:main
