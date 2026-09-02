@@ -5,6 +5,13 @@ on:
     - cron: "*/15 * * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: crypto-scanner
+  cancel-in-progress: false
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -26,3 +33,21 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scanner.py
+
+      - name: Sanal işlem kayıtlarını kaydet
+        run: |
+          if [ -f paper_trades.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            git add paper_trades.json
+
+            if ! git diff --cached --quiet; then
+              git commit -m "Update paper trades"
+              git push
+            else
+              echo "Sanal işlem dosyasında değişiklik yok."
+            fi
+          else
+            echo "paper_trades.json henüz oluşturulmadı."
+          fi
