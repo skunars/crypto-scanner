@@ -84,7 +84,7 @@ def get_candles(inst_id, limit=250):
 
     df = df.iloc[::-1].reset_index(drop=True)
 
-    for col in ["open", "high", "low", "close"]:
+    for col in ["open", "high", "low", "close", "vol"]:
         df[col] = df[col].astype(float)
 
     return df
@@ -254,7 +254,7 @@ def calculate_utbot(df):
 
 
 # ==============================
-# SİNYAL GÜÇ SKORU
+# SİNYAL GÜÇ SKORU + HACİM
 # ==============================
 
 def calculate_signal_score(row, signal):
@@ -269,9 +269,15 @@ def calculate_signal_score(row, signal):
         (close - ema200) / ema200
     ) * 100
 
-    # RSI gücü
+    volume_ratio = row["volume_ratio"]
+
+    # ==============================
+    # AL SİNYALİ
+    # ==============================
+
     if signal == "AL":
 
+        # RSI
         if rsi >= 60:
             score += 30
         elif rsi >= 55:
@@ -279,7 +285,7 @@ def calculate_signal_score(row, signal):
         elif rsi > 50:
             score += 10
 
-        # EMA mesafesi
+        # EMA 200
         if ema_distance >= 3:
             score += 30
         elif ema_distance >= 1:
@@ -295,8 +301,19 @@ def calculate_signal_score(row, signal):
         if row["ut_bull"]:
             score += 20
 
+        # Hacim
+        if volume_ratio >= 1.5:
+            score += 10
+        elif volume_ratio >= 1.2:
+            score += 5
+
+    # ==============================
+    # SAT SİNYALİ
+    # ==============================
+
     elif signal == "SAT":
 
+        # RSI
         if rsi <= 40:
             score += 30
         elif rsi <= 45:
@@ -304,7 +321,7 @@ def calculate_signal_score(row, signal):
         elif rsi < 50:
             score += 10
 
-        # EMA mesafesi
+        # EMA 200
         if ema_distance <= -3:
             score += 30
         elif ema_distance <= -1:
@@ -320,7 +337,14 @@ def calculate_signal_score(row, signal):
         if row["ut_bear"]:
             score += 20
 
-    return score
+        # Hacim
+        if volume_ratio >= 1.5:
+            score += 10
+        elif volume_ratio >= 1.2:
+            score += 5
+
+    # Maksimum 100
+    return min(score, 100)
 
 
 def get_score_text(score):
@@ -366,6 +390,20 @@ def check_coin(inst_id):
     )
 
     df["ut_bull"], df["ut_bear"] = calculate_utbot(df)
+
+    # ==============================
+    # HACİM ANALİZİ
+    # ==============================
+
+    df["volume_avg"] = (
+        df["vol"]
+        .rolling(20)
+        .mean()
+    )
+
+    df["volume_ratio"] = (
+        df["vol"] / df["volume_avg"]
+    )
 
     last = df.iloc[-2]
     previous = df.iloc[-3]
@@ -459,7 +497,7 @@ def get_symbols():
 # ANA TARAMA
 # ==============================
 
-if __name__ == "__main__":
+if _name_ == "_main_":
 
     symbols = get_symbols()
 
@@ -489,13 +527,26 @@ if __name__ == "__main__":
                     / row["ema200"]
                 ) * 100
 
+                volume_ratio = row["volume_ratio"]
+
+                if volume_ratio >= 1.5:
+                    volume_text = "🔥 ÇOK YÜKSEK"
+                elif volume_ratio >= 1.2:
+                    volume_text = "📈 YÜKSEK"
+                else:
+                    volume_text = "📊 NORMAL"
+
                 message = (
                     f"🚨 KRİPTO SİNYALİ 🚨\n\n"
                     f"{emoji} {signal} SİNYALİ: {symbol}\n\n"
                     f"🎯 Sinyal Gücü: {score}/100\n"
                     f"💪 {score_text}\n\n"
                     f"📊 RSI: {row['rsi']:.2f}\n"
-                    f"📈 EMA 200 mesafesi: {ema_distance:.2f}%\n"
+                    f"📈 EMA 200 mesafesi: "
+                    f"{ema_distance:.2f}%\n"
+                    f"🔥 Hacim: "
+                    f"{volume_ratio:.2f}x ortalama\n"
+                    f"{volume_text}\n"
                     f"📉 Supertrend: "
                     f"{'🟢 Yükseliş' if signal == 'AL' else '🔴 Düşüş'}\n"
                     f"🤖 UT Bot: "
