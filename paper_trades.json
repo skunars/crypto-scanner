@@ -253,5 +253,39 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "SAHARA-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.008443,
+    "sl": 0.008274140000000001,
+    "tp1": 0.00869629,
+    "tp2": 0.008949580000000002,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 80,
+    "entry_time": "2026-09-02T22:46:55.531378+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "XRDDT-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 157.47,
+    "sl": 154.32059999999998,
+    "tp1": 162.1941,
+    "tp2": 166.9182,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 100,
+    "entry_time": "2026-09-02T22:48:14.503130+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
