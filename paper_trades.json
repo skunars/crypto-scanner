@@ -1205,5 +1205,22 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "WAXP-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.004333,
+    "sl": 0.00424634,
+    "tp1": 0.00446299,
+    "tp2": 0.00459298,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 70,
+    "entry_time": "2026-09-03T12:48:35.307688+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
