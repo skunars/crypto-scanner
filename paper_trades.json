@@ -427,19 +427,19 @@
   {
     "symbol": "ANIME-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_price": 0.002774,
     "sl": 0.00271852,
     "tp1": 0.00285722,
     "tp2": 0.0029404400000000003,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0.0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -2.0,
     "score": 90,
     "entry_time": "2026-09-03T00:22:26.660598+00:00",
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-03T10:32:15.436583+00:00",
+    "exit_price": 0.00271852,
+    "exit_reason": "STOP LOSS"
   },
   {
     "symbol": "BREV-USDT",
@@ -852,19 +852,19 @@
   {
     "symbol": "AR-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_price": 2.578,
     "sl": 2.52644,
     "tp1": 2.65534,
     "tp2": 2.7326799999999998,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0.0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -2.0,
     "score": 100,
     "entry_time": "2026-09-03T07:13:57.219509+00:00",
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-03T10:32:18.132824+00:00",
+    "exit_price": 2.52644,
+    "exit_reason": "STOP LOSS"
   },
   {
     "symbol": "ARB-USDT",
