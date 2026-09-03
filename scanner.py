@@ -321,4 +321,4 @@ def close_paper_trade(
     return trade["realized_pnl_pct"]
 
 
-def
+
