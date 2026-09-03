@@ -12,6 +12,9 @@ SL_PERCENT = 0.02
 TP1_PERCENT = 0.03
 TP2_PERCENT = 0.06
 
+MAX_OPEN_TRADES =10
+REENTRY_COOLDOWN_MINUTES =60
+
 
 def now_utc():
     return datetime.now(timezone.utc).isoformat()
