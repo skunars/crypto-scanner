@@ -2042,19 +2042,19 @@
   {
     "symbol": "SATS-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_price": 1.1313e-08,
     "sl": 1.1313e-08,
     "tp1": 1.1652390000000001e-08,
     "tp2": 1.199178e-08,
     "tp1_hit": true,
-    "remaining_pct": 50,
+    "remaining_pct": 0,
     "realized_pnl_pct": 1.5,
     "score": 100,
     "entry_time": "2026-09-03T16:56:50.218201+00:00",
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-03T20:45:20.983748+00:00",
+    "exit_price": 1.1313e-08,
+    "exit_reason": "STOP LOSS"
   },
   {
     "symbol": "XBOT-USDT",
