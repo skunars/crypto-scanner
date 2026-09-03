@@ -2684,5 +2684,39 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "CHIP-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.05534,
+    "sl": 0.0542332,
+    "tp1": 0.0570002,
+    "tp2": 0.0586604,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 90,
+    "entry_time": "2026-09-03T18:57:42.698990+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "ZEN-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 5.891,
+    "sl": 5.77318,
+    "tp1": 6.06773,
+    "tp2": 6.24446,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 100,
+    "entry_time": "2026-09-03T19:00:36.315611+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
