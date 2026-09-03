@@ -1171,5 +1171,22 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "SAHARA-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.008838,
+    "sl": 0.00866124,
+    "tp1": 0.009103140000000001,
+    "tp2": 0.009368280000000001,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 80,
+    "entry_time": "2026-09-03T11:57:02.928739+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
