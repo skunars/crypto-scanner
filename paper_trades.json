@@ -1090,19 +1090,19 @@
   {
     "symbol": "ARB-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_price": 0.13926,
     "sl": 0.13647479999999998,
     "tp1": 0.1434378,
     "tp2": 0.1476156,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0.0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -2.0,
     "score": 100,
     "entry_time": "2026-09-03T09:54:08.442772+00:00",
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-03T10:51:55.599226+00:00",
+    "exit_price": 0.13647479999999998,
+    "exit_reason": "STOP LOSS"
   },
   {
     "symbol": "DORA-USDT",
