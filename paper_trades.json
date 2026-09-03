@@ -308,19 +308,19 @@
   {
     "symbol": "FIL-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_price": 0.8042,
     "sl": 0.8042,
     "tp1": 0.828326,
     "tp2": 0.8524520000000001,
     "tp1_hit": true,
-    "remaining_pct": 50,
+    "remaining_pct": 0,
     "realized_pnl_pct": 1.5,
     "score": 95,
     "entry_time": "2026-09-02T23:27:12.159794+00:00",
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-03T07:30:40.041877+00:00",
+    "exit_price": 0.8042,
+    "exit_reason": "STOP LOSS"
   },
   {
     "symbol": "AR-USDT",
