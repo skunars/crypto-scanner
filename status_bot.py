@@ -61,17 +61,24 @@ def send_message(chat_id, message):
 
     url = f"{TELEGRAM_URL}{token}/sendMessage"
 
-    try:
-        response = requests.post(
-            url,
-            data={
-                "chat_id": chat_id,
-                "text": message
-            },
-            timeout=10
-        )
+    # Telegram mesaj sınırı nedeniyle mesajı parçalıyoruz.
+    chunks = [
+        message[i:i + 4000]
+        for i in range(0, len(message), 4000)
+    ]
 
-        print("Telegram cevap:", response.text)
+    try:
+        for chunk in chunks:
+            response = requests.post(
+                url,
+                data={
+                    "chat_id": chat_id,
+                    "text": chunk
+                },
+                timeout=10
+            )
+
+            print("Telegram cevap:", response.text)
 
     except Exception as e:
         print("Telegram gönderme hatası:", e)
@@ -190,19 +197,21 @@ def main():
             status = create_status()
             send_message(chat_id, status)
 
-        # Telegram güncellemesini tüket
+        # İşlenen Telegram mesajını temizle
         if update_id is not None:
             token = os.getenv("TELEGRAM_BOT_TOKEN")
-            url = f"{TELEGRAM_URL}{token}/getUpdates"
 
-            try:
-                requests.get(
-                    url,
-                    params={"offset": update_id + 1},
-                    timeout=10
-                )
-            except Exception as e:
-                print("Update temizleme hatası:", e)
+            if token:
+                url = f"{TELEGRAM_URL}{token}/getUpdates"
+
+                try:
+                    requests.get(
+                        url,
+                        params={"offset": update_id + 1},
+                        timeout=10
+                    )
+                except Exception as e:
+                    print("Update temizleme hatası:", e)
 
 
 if __name__ == "__main__":
