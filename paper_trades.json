@@ -869,19 +869,19 @@
   {
     "symbol": "ARB-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_price": 0.13504,
     "sl": 0.13504,
     "tp1": 0.1390912,
     "tp2": 0.1431424,
     "tp1_hit": true,
-    "remaining_pct": 50,
+    "remaining_pct": 0,
     "realized_pnl_pct": 1.5,
     "score": 100,
     "entry_time": "2026-09-03T07:13:58.588767+00:00",
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-03T09:14:35.417803+00:00",
+    "exit_price": 0.13504,
+    "exit_reason": "STOP LOSS"
   },
   {
     "symbol": "LRC-USDT",
