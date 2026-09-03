@@ -1052,5 +1052,39 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "BRL1-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.1955,
+    "sl": 0.19159,
+    "tp1": 0.20136500000000002,
+    "tp2": 0.20723000000000003,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 90,
+    "entry_time": "2026-09-03T09:32:32.774336+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "COMP-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 20.74,
+    "sl": 20.3252,
+    "tp1": 21.362199999999998,
+    "tp2": 21.9844,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 100,
+    "entry_time": "2026-09-03T09:32:42.260559+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
