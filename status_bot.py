@@ -14,8 +14,18 @@ def load_trades():
 
     try:
         with open(PAPER_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+            data = json.load(f)
+
+        if isinstance(data, list):
+            return data
+
+        if isinstance(data, dict):
+            return list(data.values())
+
+        return []
+
+    except Exception as e:
+        print("Trade okuma hatası:", e)
         return []
 
 
@@ -52,7 +62,7 @@ def send_message(chat_id, message):
     url = f"{TELEGRAM_URL}{token}/sendMessage"
 
     try:
-        requests.post(
+        response = requests.post(
             url,
             data={
                 "chat_id": chat_id,
@@ -61,7 +71,7 @@ def send_message(chat_id, message):
             timeout=10
         )
 
-        print("Telegram mesajı gönderildi.")
+        print("Telegram cevap:", response.text)
 
     except Exception as e:
         print("Telegram gönderme hatası:", e)
@@ -98,28 +108,6 @@ def get_updates():
         return []
 
 
-def confirm_updates(update_id):
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-
-    if not token:
-        return
-
-    url = f"{TELEGRAM_URL}{token}/getUpdates"
-
-    try:
-        requests.get(
-            url,
-            params={
-                "offset": update_id + 1,
-                "limit": 1
-            },
-            timeout=10
-        )
-
-    except Exception as e:
-        print("Update onaylama hatası:", e)
-
-
 def format_price(price):
     if price >= 100:
         return f"{price:.2f}"
@@ -128,3 +116,94 @@ def format_price(price):
         return f"{price:.4f}".rstrip("0").rstrip(".")
 
     return f"{price:.8f}"
+
+
+def create_status():
+    trades = load_trades()
+
+    open_trades = [
+        trade for trade in trades
+        if str(trade.get("status", "")).upper() == "OPEN"
+    ]
+
+    if not open_trades:
+        return "📊 PAPER TRADE STATUS\n\nAçık işlem bulunmuyor."
+
+    message = "📊 PAPER TRADE STATUS\n\n"
+
+    for trade in open_trades:
+        symbol = trade.get("symbol", "UNKNOWN")
+        side = trade.get("side", "UNKNOWN")
+        entry = trade.get("entry_price")
+        sl = trade.get("sl")
+        tp1 = trade.get("tp1")
+        tp2 = trade.get("tp2")
+
+        current = get_price(symbol)
+
+        message += f"🪙 {symbol}\n"
+        message += f"📈 Yön: {side}\n"
+
+        if entry is not None:
+            message += f"🎯 Giriş: {format_price(float(entry))}\n"
+
+        if current is not None:
+            message += f"💰 Güncel: {format_price(current)}\n"
+
+        if sl is not None:
+            message += f"🛑 SL: {format_price(float(sl))}\n"
+
+        if tp1 is not None:
+            message += f"🥇 TP1: {format_price(float(tp1))}\n"
+
+        if tp2 is not None:
+            message += f"🥈 TP2: {format_price(float(tp2))}\n"
+
+        message += "\n"
+
+    return message
+
+
+def main():
+    print("Telegram Status Bot başladı.")
+
+    updates = get_updates()
+
+    if not updates:
+        print("Bekleyen Telegram mesajı bulunamadı.")
+        return
+
+    for update in updates:
+        update_id = update.get("update_id")
+
+        message = update.get("message", {})
+        text = message.get("text", "")
+        chat = message.get("chat", {})
+        chat_id = chat.get("id")
+
+        if not chat_id:
+            continue
+
+        print(f"Gelen mesaj: {text}")
+
+        if text.strip().lower() == "/status":
+            status = create_status()
+            send_message(chat_id, status)
+
+        # Telegram güncellemesini tüket
+        if update_id is not None:
+            token = os.getenv("TELEGRAM_BOT_TOKEN")
+            url = f"{TELEGRAM_URL}{token}/getUpdates"
+
+            try:
+                requests.get(
+                    url,
+                    params={"offset": update_id + 1},
+                    timeout=10
+                )
+            except Exception as e:
+                print("Update temizleme hatası:", e)
+
+
+if __name__ == "__main__":
+    main()
