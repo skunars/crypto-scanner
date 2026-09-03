@@ -2888,5 +2888,39 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "XCRCL-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 103.14,
+    "sl": 101.0772,
+    "tp1": 106.2342,
+    "tp2": 109.3284,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 100,
+    "entry_time": "2026-09-03T20:14:56.675093+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "ZORA-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_price": 0.007673,
+    "sl": 0.00751954,
+    "tp1": 0.007903190000000001,
+    "tp2": 0.00813338,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0.0,
+    "score": 80,
+    "entry_time": "2026-09-03T20:15:38.719733+00:00",
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
