@@ -1428,8 +1428,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T23:38:02.013633+00:00",
-    "last_checked_price": 0.008777
+    "last_score_time": "2026-09-04T23:52:20.208603+00:00",
+    "last_checked_price": 0.00879
   },
   {
     "symbol": "MERL-USDT",
@@ -1470,8 +1470,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T23:37:45.066024+00:00",
-    "last_checked_price": 2.19
+    "last_score_time": "2026-09-04T23:52:04.756916+00:00",
+    "last_checked_price": 2.184
   },
   {
     "symbol": "TRX-USDT",
@@ -1512,7 +1512,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T23:37:55.877474+00:00",
+    "last_score_time": "2026-09-04T23:52:15.511006+00:00",
     "last_checked_price": 0.7427
   },
   {
@@ -1560,23 +1560,23 @@
   {
     "symbol": "CHIP-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T22:53:05.919690+00:00",
     "entry_price": 0.05539,
     "sl": 0.0542822,
     "tp1": 0.057051700000000004,
     "tp2": 0.058713400000000006,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -1.751218631521933,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 2,
     "signal_candle_ts": 1788561000000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-04T23:37:52.739676+00:00",
-    "last_checked_price": 0.05431
+    "exit_time": "2026-09-04T23:52:34.544777+00:00",
+    "exit_price": 0.05442,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-04T23:52:12.071854+00:00",
+    "last_checked_price": 0.0549
   },
   {
     "symbol": "DOT-USDT",
@@ -1596,8 +1596,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T23:37:56.342935+00:00",
-    "last_checked_price": 0.8842
+    "last_score_time": "2026-09-04T23:52:15.080246+00:00",
+    "last_checked_price": 0.8963
   },
   {
     "symbol": "LIT-USDT",
@@ -1617,8 +1617,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T23:37:43.102003+00:00",
-    "last_checked_price": 4.7553
+    "last_score_time": "2026-09-04T23:52:03.061261+00:00",
+    "last_checked_price": 4.7888
   },
   {
     "symbol": "OKB-USDT",
@@ -1638,7 +1638,26 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T23:37:45.951952+00:00",
-    "last_checked_price": 108.14
+    "last_score_time": "2026-09-04T23:52:05.611593+00:00",
+    "last_checked_price": 107.96
+  },
+  {
+    "symbol": "LTC-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T23:52:35.180534+00:00",
+    "entry_price": 50.76,
+    "sl": 49.7448,
+    "tp1": 52.2828,
+    "tp2": 53.8056,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788564600000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
