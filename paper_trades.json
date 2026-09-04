@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "symbol": "DASH-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T06:37:45.735156+00:00",
+    "entry_price": 50.47,
+    "sl": 49.4606,
+    "tp1": 51.9841,
+    "tp2": 53.498200000000004,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "LPT-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T06:37:56.525947+00:00",
+    "entry_price": 1.479,
+    "sl": 1.4494200000000002,
+    "tp1": 1.5233700000000001,
+    "tp2": 1.5677400000000001,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "POL-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T06:38:01.689362+00:00",
+    "entry_price": 0.09487,
+    "sl": 0.09297259999999999,
+    "tp1": 0.0977161,
+    "tp2": 0.1005622,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  }
+]
