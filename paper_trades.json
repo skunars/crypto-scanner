@@ -706,18 +706,18 @@
   {
     "symbol": "GRVT-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T14:13:09.829801+00:00",
     "entry_price": 0.16075,
     "sl": 0.157535,
     "tp1": 0.1655725,
     "tp2": 0.17039500000000002,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 1.0202177293934698,
+    "exit_time": "2026-09-04T17:40:25.317971+00:00",
+    "exit_price": 0.16239,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "XSPCX-USDT",
@@ -786,18 +786,18 @@
   {
     "symbol": "XSOXL-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T15:18:13.570475+00:00",
     "entry_price": 117.3,
     "sl": 114.954,
     "tp1": 120.819,
     "tp2": 124.33800000000001,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -1.338448422847394,
+    "exit_time": "2026-09-04T17:40:12.593581+00:00",
+    "exit_price": 115.73,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "LPT-USDT",
@@ -882,18 +882,18 @@
   {
     "symbol": "XPL-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T17:12:31.505334+00:00",
     "entry_price": 0.09504,
     "sl": 0.09313919999999999,
     "tp1": 0.0978912,
     "tp2": 0.10074240000000001,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.8207070707070737,
+    "exit_time": "2026-09-04T17:40:13.641186+00:00",
+    "exit_price": 0.09426,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "WLFI-USDT",
@@ -910,5 +910,21 @@
     "exit_time": "2026-09-04T17:27:00.351184+00:00",
     "exit_price": 0.05706,
     "exit_reason": "SELL SIGNAL"
+  },
+  {
+    "symbol": "GRAM-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T17:40:22.174680+00:00",
+    "entry_price": 1.369,
+    "sl": 1.34162,
+    "tp1": 1.41007,
+    "tp2": 1.45114,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
