@@ -834,18 +834,18 @@
   {
     "symbol": "LIT-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T15:41:40.538957+00:00",
     "entry_price": 4.7213,
     "sl": 4.626874,
     "tp1": 4.862939000000001,
     "tp2": 5.004578,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.3706606231334605,
+    "exit_time": "2026-09-04T18:15:05.295296+00:00",
+    "exit_price": 4.7388,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "ZEC-USDT",
