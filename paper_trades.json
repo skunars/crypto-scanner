@@ -738,18 +738,18 @@
   {
     "symbol": "AR-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T14:29:45.179597+00:00",
     "entry_price": 2.614,
     "sl": 2.5617199999999998,
     "tp1": 2.69242,
     "tp2": 2.77084,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.1912777352716273,
+    "exit_time": "2026-09-04T16:14:30.257867+00:00",
+    "exit_price": 2.619,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "ZEC-USDT",
