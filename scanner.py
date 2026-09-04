@@ -26,10 +26,20 @@ UT_ATR_LENGTH = 10
 UT_SENSITIVITY = 1.0
 
 MAX_SYMBOLS_TO_SCAN = 80
+MAX_OPEN_TRADES = 10
 
 SL_PERCENT = 0.02
 TP1_PERCENT = 0.03
 TP2_PERCENT = 0.06
+
+# Yeni sinyal geldiğinde mevcut işlemin değiştirilmesi
+# için minimum avantaj.
+# Yeni sinyal 4/4 olduğu için mevcut işlemin skoru
+# bunun altında olmalıdır.
+REPLACEMENT_MIN_SCORE = 2
+
+# Çok küçük kârlarla sürekli işlem değiştirmemek için.
+LOW_PROFIT_THRESHOLD = 0.005  # %0.5
 
 PAPER_FILE = "paper_trades.json"
 
@@ -57,6 +67,16 @@ def safe_float(value, default=0.0):
         return float(value)
     except Exception:
         return default
+
+
+def pnl_emoji(pnl):
+    if pnl > 0:
+        return "🟢"
+
+    if pnl < 0:
+        return "🔴"
+
+    return "🟡"
 
 
 # ============================================================
@@ -129,6 +149,47 @@ def okx_get(path, params=None):
     return data.get("data", [])
 
 
+# ============================================================
+# KRİPTO SEMBOL FİLTRESİ
+# ============================================================
+
+def is_crypto_symbol(inst_id):
+    """
+    OKX üzerindeki SPOT-USDT listesinden,
+    klasik kripto varlıkları tutmaya çalışır.
+
+    X ile başlayan tokenized / hisse / ETF benzeri
+    sembolleri dışarıda bırakır.
+    """
+
+    if not inst_id.endswith("-USDT"):
+        return False
+
+    base = inst_id[:-5].upper()
+
+    # Stablecoin çiftleri
+    excluded_stablecoins = {
+        "USDC",
+        "USDT",
+        "USDE",
+        "USDS",
+        "USDG",
+        "DAI",
+        "FDUSD",
+        "TUSD",
+        "PYUSD"
+    }
+
+    if base in excluded_stablecoins:
+        return False
+
+    # Tokenized hisse / ETF / benzeri OKX sembolleri
+    if base.startswith("X"):
+        return False
+
+    return True
+
+
 def get_symbols():
     data = okx_get(
         "/api/v5/public/instruments",
@@ -142,10 +203,10 @@ def get_symbols():
     for item in data:
         inst_id = item.get("instId", "")
 
-        if not inst_id.endswith("-USDT"):
+        if item.get("state") != "live":
             continue
 
-        if item.get("state") != "live":
+        if not is_crypto_symbol(inst_id):
             continue
 
         symbols.append(inst_id)
@@ -166,13 +227,18 @@ def get_tickers():
     for item in data:
         symbol = item.get("instId")
 
-        if symbol and symbol.endswith("-USDT"):
-            result[symbol] = {
-                "last": safe_float(item.get("last")),
-                "volCcy24h": safe_float(
-                    item.get("volCcy24h")
-                )
-            }
+        if not symbol:
+            continue
+
+        if not is_crypto_symbol(symbol):
+            continue
+
+        result[symbol] = {
+            "last": safe_float(item.get("last")),
+            "volCcy24h": safe_float(
+                item.get("volCcy24h")
+            )
+        }
 
     return result
 
@@ -390,9 +456,14 @@ def calculate_ut_bot(
         dtype="float64"
     )
 
+    first_loss = loss.iloc[0]
+
+    if pd.isna(first_loss):
+        first_loss = 0
+
     trailing_stop.iloc[0] = (
         close.iloc[0] -
-        loss.iloc[0]
+        first_loss
     )
 
     for i in range(1, len(df)):
@@ -489,7 +560,7 @@ def calculate_signal(df):
         UT_SENSITIVITY
     )
 
-    # Sadece kapanmış mumları kullan.
+    # Sadece kapanmış mumlar.
     closed = df[
         df["confirm"] == "1"
     ].copy()
@@ -524,7 +595,6 @@ def calculate_signal(df):
 
     signal = None
 
-    # Dört şartın tamamı ilk kez oluştu.
     if (
         current_score == 4
         and
@@ -532,8 +602,6 @@ def calculate_signal(df):
     ):
         signal = "BUY"
 
-    # Daha önce dört şart vardı,
-    # artık bozuldu.
     elif (
         current_score < 4
         and
@@ -553,7 +621,8 @@ def calculate_signal(df):
         ),
         "ut_bull": bool(
             current["ut_bull"]
-        )
+        ),
+        "candle_ts": int(current["ts"])
     }
 
 
@@ -606,13 +675,38 @@ def save_paper_trades(trades):
 
 
 # ============================================================
+# AÇIK İŞLEM PNL HESAPLAMA
+# ============================================================
+
+def calculate_open_pnl(trade, current_price):
+
+    entry = safe_float(
+        trade.get("entry_price")
+    )
+
+    if entry <= 0:
+        return 0.0
+
+    return (
+        (
+            current_price -
+            entry
+        )
+        /
+        entry
+    ) * 100
+
+
+# ============================================================
 # PAPER TRADE AÇ
 # ============================================================
 
 def open_paper_trade(
     trades,
     symbol,
-    entry_price
+    entry_price,
+    signal_result=None,
+    send_notification=True
 ):
 
     open_trades = [
@@ -621,11 +715,12 @@ def open_paper_trade(
         if t.get("status") == "OPEN"
     ]
 
-    if len(open_trades) >= 10:
+    if len(open_trades) >= MAX_OPEN_TRADES:
 
         log(
-            "Maksimum 10 açık paper trade "
-            "sınırına ulaşıldı."
+            f"Yeni işlem açılamadı: "
+            f"{symbol} | maksimum {MAX_OPEN_TRADES} "
+            f"açık işlem sınırı."
         )
 
         return False
@@ -633,6 +728,10 @@ def open_paper_trade(
     for trade in open_trades:
 
         if trade.get("symbol") == symbol:
+            log(
+                f"{symbol} zaten açık işlem. "
+                f"Tekrar açılmadı."
+            )
             return False
 
     sl = (
@@ -649,6 +748,13 @@ def open_paper_trade(
         entry_price *
         (1 + TP2_PERCENT)
     )
+
+    candle_ts = None
+
+    if signal_result:
+        candle_ts = signal_result.get(
+            "candle_ts"
+        )
 
     trade = {
         "symbol": symbol,
@@ -668,6 +774,10 @@ def open_paper_trade(
 
         "realized_pnl_pct": 0,
 
+        "signal_score": 4,
+        "last_score": 4,
+        "signal_candle_ts": candle_ts,
+
         "exit_time": None,
         "exit_price": None,
         "exit_reason": None
@@ -680,20 +790,19 @@ def open_paper_trade(
         f"entry={entry_price}"
     )
 
-    # ========================================================
-    # SANAL ALIŞ TELEGRAM BİLDİRİMİ
-    # ========================================================
+    if send_notification:
 
-    send_telegram(
-        f"🟢 SANAL ALIŞ AÇILDI 🟢\n\n"
-        f"🪙 {symbol}\n"
-        f"📈 Yön: LONG\n\n"
-        f"💰 Giriş: {entry_price:.10g}\n"
-        f"🛑 SL: {sl:.10g} (-2%)\n"
-        f"🥇 TP1: {tp1:.10g} (+3%)\n"
-        f"🥈 TP2: {tp2:.10g} (+6%)\n\n"
-        f"📊 Paper Trade aktif"
-    )
+        send_telegram(
+            f"🟢 SANAL ALIŞ AÇILDI 🟢\n\n"
+            f"🪙 {symbol}\n"
+            f"📈 Yön: LONG\n\n"
+            f"💰 Giriş: {entry_price:.10g}\n"
+            f"🛑 SL: {sl:.10g} (-2%)\n"
+            f"🥇 TP1: {tp1:.10g} (+3%)\n"
+            f"🥈 TP2: {tp2:.10g} (+6%)\n\n"
+            f"📊 4/4 indikatör onayı\n"
+            f"📊 Paper Trade aktif"
+        )
 
     return True
 
@@ -756,21 +865,6 @@ def close_paper_trade(
 
 
 # ============================================================
-# KÂR / ZARAR EMOJİSİ
-# ============================================================
-
-def pnl_emoji(pnl):
-
-    if pnl > 0:
-        return "🟢"
-
-    if pnl < 0:
-        return "🔴"
-
-    return "🟡"
-
-
-# ============================================================
 # PAPER TRADELERİ GÜNCELLE
 # ============================================================
 
@@ -821,8 +915,6 @@ def update_paper_trades(
                 "STOP LOSS"
             )
 
-            emoji = pnl_emoji(pnl)
-
             log(
                 f"STOP LOSS: {symbol} "
                 f"PnL={pnl:.2f}%"
@@ -834,8 +926,7 @@ def update_paper_trades(
                 f"💰 Giriş: {entry:.10g}\n"
                 f"💰 Çıkış: {current_price:.10g}\n"
                 f"🛑 Sebep: STOP LOSS\n\n"
-                f"{emoji} "
-                f"GERÇEKLEŞEN PnL: "
+                f"🔴 GERÇEKLEŞEN PnL: "
                 f"{pnl:+.2f}%"
             )
 
@@ -879,7 +970,6 @@ def update_paper_trades(
 
             trade["remaining_pct"] = 50
 
-            # TP1 sonrası SL giriş fiyatına taşınır.
             trade["sl"] = entry
 
             log(
@@ -937,7 +1027,224 @@ def update_paper_trades(
 
 
 # ============================================================
-# SAT SİNYALİ İLE PAPER TRADE KAPAT
+# AÇIK İŞLEMLERİN GÜNCEL SKORUNU KAYDET
+# ============================================================
+
+def update_open_trade_score(
+    trades,
+    symbol,
+    result,
+    current_price
+):
+
+    changed = False
+
+    for trade in trades:
+
+        if trade.get("status") != "OPEN":
+            continue
+
+        if trade.get("symbol") != symbol:
+            continue
+
+        old_score = safe_float(
+            trade.get("last_score"),
+            4
+        )
+
+        new_score = safe_float(
+            result.get("score"),
+            old_score
+        )
+
+        if old_score != new_score:
+            changed = True
+
+        trade["last_score"] = int(
+            new_score
+        )
+
+        trade["last_score_time"] = now_utc()
+
+        trade["last_checked_price"] = (
+            current_price
+        )
+
+    return changed
+
+
+# ============================================================
+# ZAYIF İŞLEM ADAYINI BUL
+# ============================================================
+
+def find_replacement_candidate(
+    trades,
+    prices
+):
+
+    candidates = []
+
+    for trade in trades:
+
+        if trade.get("status") != "OPEN":
+            continue
+
+        symbol = trade.get("symbol")
+
+        if symbol not in prices:
+            continue
+
+        # TP1 görmüş işlemleri koru.
+        if trade.get("tp1_hit", False):
+            continue
+
+        current_price = prices[symbol]
+
+        current_pnl = calculate_open_pnl(
+            trade,
+            current_price
+        )
+
+        score = safe_float(
+            trade.get("last_score"),
+            4
+        )
+
+        # Çok güçlü işlemleri koru.
+        if score > REPLACEMENT_MIN_SCORE:
+            continue
+
+        # Kârlı ve güçlü sayılabilecek işlemleri
+        # gereksiz yere değiştirme.
+        if (
+            current_pnl > LOW_PROFIT_THRESHOLD
+            and
+            score >= 2
+        ):
+            continue
+
+        weakness = (
+            (4 - score) * 10
+            +
+            max(0, -current_pnl)
+        )
+
+        candidates.append({
+            "trade": trade,
+            "symbol": symbol,
+            "pnl": current_pnl,
+            "score": score,
+            "weakness": weakness
+        })
+
+    if not candidates:
+        return None
+
+    candidates.sort(
+        key=lambda item:
+        item["weakness"],
+        reverse=True
+    )
+
+    return candidates[0]
+
+
+# ============================================================
+# İŞLEM DEĞİŞTİR
+# ============================================================
+
+def replace_trade(
+    trades,
+    candidate,
+    new_symbol,
+    new_result,
+    prices
+):
+
+    old_trade = candidate["trade"]
+
+    old_symbol = candidate["symbol"]
+
+    old_price = prices.get(
+        old_symbol,
+        safe_float(
+            old_trade.get("entry_price")
+        )
+    )
+
+    old_pnl = calculate_open_pnl(
+        old_trade,
+        old_price
+    )
+
+    old_score = safe_float(
+        old_trade.get("last_score"),
+        4
+    )
+
+    new_price = new_result["price"]
+
+    # Eski işlemi kapat.
+    realized = close_paper_trade(
+        old_trade,
+        old_price,
+        "REPLACED BY STRONGER SIGNAL"
+    )
+
+    # Yeni işlemi aç.
+    opened = open_paper_trade(
+        trades,
+        new_symbol,
+        new_price,
+        new_result,
+        send_notification=False
+    )
+
+    if not opened:
+        # Güvenlik: yeni işlem açılamazsa eski işlemi
+        # kapatmış halde bırakmak yerine geri aç.
+        old_trade["status"] = "OPEN"
+        old_trade["remaining_pct"] = (
+            old_trade.get(
+                "remaining_pct",
+                100
+            )
+        )
+        old_trade["exit_time"] = None
+        old_trade["exit_price"] = None
+        old_trade["exit_reason"] = None
+
+        log(
+            f"İşlem değişimi başarısız: "
+            f"{old_symbol} -> {new_symbol}"
+        )
+
+        return False
+
+    send_telegram(
+        f"🔄 İŞLEM DEĞİŞTİRİLDİ 🔄\n\n"
+        f"🔴 Çıkan: {old_symbol}\n"
+        f"📊 Eski skor: {int(old_score)}/4\n"
+        f"💰 Mevcut PnL: {old_pnl:+.2f}%\n\n"
+        f"🟢 Yeni: {new_symbol}\n"
+        f"📊 Yeni skor: 4/4\n"
+        f"💰 Giriş: {new_price:.10g}\n\n"
+        f"🧠 Neden:\n"
+        f"Yeni 4/4 sinyal, mevcut zayıf işlemden "
+        f"daha güçlü bulundu."
+    )
+
+    log(
+        f"TRADE REPLACED: "
+        f"{old_symbol} -> {new_symbol} | "
+        f"old_pnl={realized:.2f}%"
+    )
+
+    return True
+
+
+# ============================================================
+# SELL SİNYALİ İLE PAPER TRADE KAPAT
 # ============================================================
 
 def close_on_sell_signal(
@@ -961,8 +1268,6 @@ def close_on_sell_signal(
             price,
             "SELL SIGNAL"
         )
-
-        emoji = pnl_emoji(pnl)
 
         log(
             f"SELL SIGNAL: {symbol} "
@@ -1005,7 +1310,7 @@ def close_on_sell_signal(
 
 
 # ============================================================
-# BUY BİLDİRİMİ
+# BUY SİNYALİ İÇİN TELEGRAM
 # ============================================================
 
 def send_buy_signal(
@@ -1081,19 +1386,6 @@ def main():
     log("OKX CRYPTO SCANNER BAŞLADI")
     log("=" * 60)
 
-    # --------------------------------------------------------
-    # Telegram testi
-    # --------------------------------------------------------
-
-    send_telegram(
-        "🟢 OKX Crypto Scanner çalıştı.\n"
-        "Telegram bağlantısı aktif."
-    )
-
-    # --------------------------------------------------------
-    # Paper trades
-    # --------------------------------------------------------
-
     trades = load_paper_trades()
 
     log(
@@ -1102,7 +1394,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Ticker verileri
+    # TICKER VERİLERİ
     # --------------------------------------------------------
 
     try:
@@ -1124,7 +1416,7 @@ def main():
     }
 
     # --------------------------------------------------------
-    # Açık işlemleri güncelle
+    # AÇIK İŞLEMLERİ GÜNCELLE
     # --------------------------------------------------------
 
     if update_paper_trades(
@@ -1137,7 +1429,7 @@ def main():
         )
 
     # --------------------------------------------------------
-    # Sembolleri al
+    # SEMBOLLERİ AL
     # --------------------------------------------------------
 
     try:
@@ -1153,7 +1445,7 @@ def main():
         return
 
     # --------------------------------------------------------
-    # Hacme göre sırala
+    # HACME GÖRE SIRALA
     # --------------------------------------------------------
 
     symbols = [
@@ -1173,17 +1465,18 @@ def main():
     ]
 
     log(
-        f"Taranacak coin sayısı: "
+        f"Taranacak kripto coin sayısı: "
         f"{len(symbols)}"
     )
 
-    buy_count = 0
-    sell_count = 0
+    buy_signals = []
+    sell_signals = []
+
     error_count = 0
 
-    # --------------------------------------------------------
-    # COIN TARAMA
-    # --------------------------------------------------------
+    # ========================================================
+    # 1. AŞAMA: TÜM COİNLERİ TARA
+    # ========================================================
 
     for index, symbol in enumerate(
         symbols,
@@ -1211,70 +1504,46 @@ def main():
             if result is None:
                 continue
 
-            signal = result["signal"]
+            current_price = prices.get(
+                symbol,
+                result["price"]
+            )
 
-            # ------------------------------------------------
-            # BUY
-            # ------------------------------------------------
+            # Açık işlem varsa mevcut skorunu güncelle.
+            update_open_trade_score(
+                trades,
+                symbol,
+                result,
+                current_price
+            )
+
+            signal = result["signal"]
 
             if signal == "BUY":
 
-                buy_count += 1
+                buy_signals.append({
+                    "symbol": symbol,
+                    "result": result
+                })
 
                 log(
-                    f"🚨 BUY: {symbol} "
+                    f"🚨 BUY ADAYI: {symbol} "
                     f"price={result['price']:.10g} "
-                    f"RSI={result['rsi']:.2f}"
+                    f"RSI={result['rsi']:.2f} "
+                    f"score={result['score']}/4"
                 )
-
-                send_buy_signal(
-                    symbol,
-                    result
-                )
-
-                opened = open_paper_trade(
-                    trades,
-                    symbol,
-                    result["price"]
-                )
-
-                if opened:
-
-                    save_paper_trades(
-                        trades
-                    )
-
-            # ------------------------------------------------
-            # SELL
-            # ------------------------------------------------
 
             elif signal == "SELL":
 
-                sell_count += 1
+                sell_signals.append({
+                    "symbol": symbol,
+                    "result": result
+                })
 
                 log(
                     f"🔻 SELL: {symbol} "
                     f"price={result['price']:.10g}"
                 )
-
-                send_sell_signal(
-                    symbol,
-                    result
-                )
-
-                if close_on_sell_signal(
-                    trades,
-                    symbol,
-                    result["price"]
-                ):
-
-                    save_paper_trades(
-                        trades
-                    )
-
-            # ------------------------------------------------
-            # Küçük bekleme
-            # ------------------------------------------------
 
             time.sleep(0.15)
 
@@ -1286,9 +1555,167 @@ def main():
                 f"❌ {symbol} hata: {e}"
             )
 
-    # --------------------------------------------------------
+    # ========================================================
+    # 2. AŞAMA: SELL SİNYALLERİ
+    # ========================================================
+
+    sell_count = 0
+
+    for item in sell_signals:
+
+        symbol = item["symbol"]
+        result = item["result"]
+
+        has_open_trade = any(
+            trade.get("status") == "OPEN"
+            and
+            trade.get("symbol") == symbol
+            for trade in trades
+        )
+
+        # Açık işlem yoksa gereksiz SELL Telegram'ı gönderme.
+        if not has_open_trade:
+            log(
+                f"SELL atlandı: {symbol} | "
+                f"açık paper trade yok."
+            )
+            continue
+
+        sell_count += 1
+
+        send_sell_signal(
+            symbol,
+            result
+        )
+
+        if close_on_sell_signal(
+            trades,
+            symbol,
+            result["price"]
+        ):
+
+            save_paper_trades(
+                trades
+            )
+
+    # ========================================================
+    # 3. AŞAMA: BUY SİNYALLERİ
+    # ========================================================
+
+    buy_count = 0
+    replacement_count = 0
+
+    for item in buy_signals:
+
+        symbol = item["symbol"]
+        result = item["result"]
+
+        # ----------------------------------------------------
+        # Aynı coin zaten açıksa hiçbir bildirim gönderme.
+        # ----------------------------------------------------
+
+        already_open = any(
+            trade.get("status") == "OPEN"
+            and
+            trade.get("symbol") == symbol
+            for trade in trades
+        )
+
+        if already_open:
+
+            log(
+                f"BUY atlandı: {symbol} | "
+                f"zaten açık işlem."
+            )
+
+            continue
+
+        # ----------------------------------------------------
+        # Mevcut açık işlem sayısı
+        # ----------------------------------------------------
+
+        open_count = sum(
+            1
+            for trade in trades
+            if trade.get("status") == "OPEN"
+        )
+
+        # ----------------------------------------------------
+        # Yer varsa direkt aç.
+        # ----------------------------------------------------
+
+        if open_count < MAX_OPEN_TRADES:
+
+            buy_count += 1
+
+            send_buy_signal(
+                symbol,
+                result
+            )
+
+            opened = open_paper_trade(
+                trades,
+                symbol,
+                result["price"],
+                result,
+                send_notification=True
+            )
+
+            if opened:
+
+                save_paper_trades(
+                    trades
+                )
+
+            continue
+
+        # ----------------------------------------------------
+        # 10 işlem doluysa değişim adayı ara.
+        # ----------------------------------------------------
+
+        candidate = find_replacement_candidate(
+            trades,
+            prices
+        )
+
+        if candidate is None:
+
+            log(
+                f"BUY atlandı: {symbol} | "
+                f"{MAX_OPEN_TRADES} açık işlem var "
+                f"ve değiştirilebilecek zayıf işlem yok."
+            )
+
+            continue
+
+        log(
+            f"🔄 DEĞİŞİM ADAYI: "
+            f"{candidate['symbol']} "
+            f"PnL={candidate['pnl']:+.2f}% "
+            f"score={int(candidate['score'])}/4 "
+            f"-> {symbol} 4/4"
+        )
+
+        replaced = replace_trade(
+            trades,
+            candidate,
+            symbol,
+            result,
+            prices
+        )
+
+        if replaced:
+
+            replacement_count += 1
+            buy_count += 1
+
+            save_paper_trades(
+                trades
+            )
+
+    # ========================================================
     # SON KAYIT
-    # --------------------------------------------------------
+    # ========================================================
 
     save_paper_trades(
         trades
@@ -1316,14 +1743,15 @@ def main():
         if trade.get("status") == "CLOSED"
     )
 
-    # --------------------------------------------------------
+    # ========================================================
     # ÖZET
-    # --------------------------------------------------------
+    # ========================================================
 
     log("=" * 60)
     log("TARAMA TAMAMLANDI")
-    log(f"BUY sinyali: {buy_count}")
-    log(f"SELL sinyali: {sell_count}")
+    log(f"BUY işlemi: {buy_count}")
+    log(f"SELL işlemi: {sell_count}")
+    log(f"İşlem değişimi: {replacement_count}")
     log(f"Hata: {error_count}")
     log(f"Açık paper trade: {open_count}")
     log(f"Kapanmış paper trade: {closed_count}")
