@@ -674,18 +674,18 @@
   {
     "symbol": "UNI-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T14:12:50.722122+00:00",
     "entry_price": 6.287,
     "sl": 6.1612599999999995,
     "tp1": 6.47561,
     "tp2": 6.66422,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -1.2088436456179357,
+    "exit_time": "2026-09-04T14:57:48.544693+00:00",
+    "exit_price": 6.211,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "ARB-USDT",
