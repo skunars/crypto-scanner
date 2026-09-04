@@ -930,8 +930,8 @@
     "exit_price": null,
     "exit_reason": null,
     "last_score": 4,
-    "last_score_time": "2026-09-04T21:28:06.556303+00:00",
-    "last_checked_price": 1.39
+    "last_score_time": "2026-09-04T21:42:25.811978+00:00",
+    "last_checked_price": 1.396
   },
   {
     "symbol": "LPT-USDT",
@@ -1142,21 +1142,21 @@
   {
     "symbol": "DASH-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T20:29:29.220253+00:00",
     "entry_price": 55.86,
     "sl": 55.86,
     "tp1": 57.5358,
     "tp2": 59.211600000000004,
     "tp1_hit": true,
-    "remaining_pct": 50,
-    "realized_pnl_pct": 1.6201217329036899,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 4.645542427497319,
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788552000000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
+    "exit_time": "2026-09-04T21:42:12.622280+00:00",
+    "exit_price": 59.24,
+    "exit_reason": "TAKE PROFIT 2",
     "last_score_time": "2026-09-04T21:27:59.682875+00:00",
     "last_checked_price": 58.83
   },
@@ -1281,8 +1281,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-04T21:28:09.881923+00:00",
-    "last_checked_price": 6.836
+    "last_score_time": "2026-09-04T21:42:28.669507+00:00",
+    "last_checked_price": 6.894
   },
   {
     "symbol": "BTC-USDT",
@@ -1301,7 +1301,9 @@
     "signal_candle_ts": 1788555600000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-04T21:42:13.517689+00:00",
+    "last_checked_price": 79817.1
   },
   {
     "symbol": "DOT-USDT",
@@ -1320,26 +1322,30 @@
     "signal_candle_ts": 1788555600000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-04T21:42:25.490777+00:00",
+    "last_checked_price": 0.8741
   },
   {
     "symbol": "TAO-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T21:28:24.994049+00:00",
     "entry_price": 225.1,
     "sl": 220.59799999999998,
     "tp1": 231.853,
     "tp2": 238.606,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.35539760106618523,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788555600000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-04T21:42:39.652896+00:00",
+    "exit_price": 224.3,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-04T21:42:26.432401+00:00",
+    "last_checked_price": 225.0
   },
   {
     "symbol": "ENS-USDT",
@@ -1356,6 +1362,27 @@
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788555600000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_time": "2026-09-04T21:42:33.467429+00:00",
+    "last_checked_price": 5.815
+  },
+  {
+    "symbol": "LDO-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T21:42:40.626089+00:00",
+    "entry_price": 0.3846,
+    "sl": 0.37690799999999997,
+    "tp1": 0.396138,
+    "tp2": 0.40767600000000004,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788556500000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
