@@ -862,5 +862,21 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "ENA-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T16:31:14.358364+00:00",
+    "entry_price": 0.16588,
+    "sl": 0.1625624,
+    "tp1": 0.1708564,
+    "tp2": 0.1758328,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
