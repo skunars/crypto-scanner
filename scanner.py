@@ -46,7 +46,10 @@ def now_utc():
 
 
 def log(message):
-    print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] {message}")
+    print(
+        f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] "
+        f"{message}"
+    )
 
 
 def safe_float(value, default=0.0):
@@ -62,10 +65,15 @@ def safe_float(value, default=0.0):
 
 def send_telegram(message):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        log("TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID bulunamadı.")
+        log(
+            "TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID bulunamadı."
+        )
         return False
 
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    url = (
+        f"https://api.telegram.org/bot"
+        f"{TELEGRAM_BOT_TOKEN}/sendMessage"
+    )
 
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -83,7 +91,11 @@ def send_telegram(message):
             log("Telegram mesajı gönderildi.")
             return True
 
-        log(f"Telegram hatası: {response.status_code} {response.text}")
+        log(
+            f"Telegram hatası: "
+            f"{response.status_code} {response.text}"
+        )
+
         return False
 
     except Exception as e:
@@ -110,7 +122,8 @@ def okx_get(path, params=None):
 
     if data.get("code") != "0":
         raise RuntimeError(
-            f"OKX API hatası: {data.get('msg', 'Bilinmeyen hata')}"
+            f"OKX API hatası: "
+            f"{data.get('msg', 'Bilinmeyen hata')}"
         )
 
     return data.get("data", [])
@@ -156,7 +169,9 @@ def get_tickers():
         if symbol and symbol.endswith("-USDT"):
             result[symbol] = {
                 "last": safe_float(item.get("last")),
-                "volCcy24h": safe_float(item.get("volCcy24h"))
+                "volCcy24h": safe_float(
+                    item.get("volCcy24h")
+                )
             }
 
     return result
@@ -223,7 +238,10 @@ def calculate_rsi(close, length=14):
         min_periods=length
     ).mean()
 
-    rs = avg_gain / avg_loss.replace(0, float("nan"))
+    rs = avg_gain / avg_loss.replace(
+        0,
+        float("nan")
+    )
 
     rsi = 100 - (100 / (1 + rs))
 
@@ -268,12 +286,25 @@ def calculate_supertrend(
     atr_length=10,
     factor=3.0
 ):
-    atr = calculate_atr(df, atr_length)
+    atr = calculate_atr(
+        df,
+        atr_length
+    )
 
-    hl2 = (df["high"] + df["low"]) / 2
+    hl2 = (
+        df["high"] +
+        df["low"]
+    ) / 2
 
-    upper_band = hl2 + factor * atr
-    lower_band = hl2 - factor * atr
+    upper_band = (
+        hl2 +
+        factor * atr
+    )
+
+    lower_band = (
+        hl2 -
+        factor * atr
+    )
 
     final_upper = upper_band.copy()
     final_lower = lower_band.copy()
@@ -288,28 +319,47 @@ def calculate_supertrend(
     for i in range(1, len(df)):
 
         if (
-            upper_band.iloc[i] < final_upper.iloc[i - 1]
-            or df["close"].iloc[i - 1] > final_upper.iloc[i - 1]
+            upper_band.iloc[i]
+            < final_upper.iloc[i - 1]
+            or
+            df["close"].iloc[i - 1]
+            > final_upper.iloc[i - 1]
         ):
             final_upper.iloc[i] = upper_band.iloc[i]
         else:
-            final_upper.iloc[i] = final_upper.iloc[i - 1]
+            final_upper.iloc[i] = (
+                final_upper.iloc[i - 1]
+            )
 
         if (
-            lower_band.iloc[i] > final_lower.iloc[i - 1]
-            or df["close"].iloc[i - 1] < final_lower.iloc[i - 1]
+            lower_band.iloc[i]
+            > final_lower.iloc[i - 1]
+            or
+            df["close"].iloc[i - 1]
+            < final_lower.iloc[i - 1]
         ):
             final_lower.iloc[i] = lower_band.iloc[i]
         else:
-            final_lower.iloc[i] = final_lower.iloc[i - 1]
+            final_lower.iloc[i] = (
+                final_lower.iloc[i - 1]
+            )
 
         if direction.iloc[i - 1] == -1:
-            if df["close"].iloc[i] > final_upper.iloc[i]:
+
+            if (
+                df["close"].iloc[i]
+                > final_upper.iloc[i]
+            ):
                 direction.iloc[i] = 1
             else:
                 direction.iloc[i] = -1
+
         else:
-            if df["close"].iloc[i] < final_lower.iloc[i]:
+
+            if (
+                df["close"].iloc[i]
+                < final_lower.iloc[i]
+            ):
                 direction.iloc[i] = -1
             else:
                 direction.iloc[i] = 1
@@ -340,22 +390,35 @@ def calculate_ut_bot(
         dtype="float64"
     )
 
-    trailing_stop.iloc[0] = close.iloc[0] - loss.iloc[0]
+    trailing_stop.iloc[0] = (
+        close.iloc[0] -
+        loss.iloc[0]
+    )
 
     for i in range(1, len(df)):
 
-        previous_stop = trailing_stop.iloc[i - 1]
-        previous_close = close.iloc[i - 1]
+        previous_stop = (
+            trailing_stop.iloc[i - 1]
+        )
+
+        previous_close = (
+            close.iloc[i - 1]
+        )
+
         current_close = close.iloc[i]
+
         current_loss = loss.iloc[i]
 
         if pd.isna(current_loss):
-            trailing_stop.iloc[i] = previous_stop
+            trailing_stop.iloc[i] = (
+                previous_stop
+            )
             continue
 
         if (
             current_close > previous_stop
-            and previous_close > previous_stop
+            and
+            previous_close > previous_stop
         ):
             trailing_stop.iloc[i] = max(
                 previous_stop,
@@ -364,7 +427,8 @@ def calculate_ut_bot(
 
         elif (
             current_close < previous_stop
-            and previous_close < previous_stop
+            and
+            previous_close < previous_stop
         ):
             trailing_stop.iloc[i] = min(
                 previous_stop,
@@ -373,12 +437,14 @@ def calculate_ut_bot(
 
         elif current_close > previous_stop:
             trailing_stop.iloc[i] = (
-                current_close - current_loss
+                current_close -
+                current_loss
             )
 
         else:
             trailing_stop.iloc[i] = (
-                current_close + current_loss
+                current_close +
+                current_loss
             )
 
     bullish = close > trailing_stop
@@ -448,17 +514,31 @@ def calculate_signal(df):
         bool(previous["ut_bull"])
     ]
 
-    current_score = sum(current_conditions)
-    previous_score = sum(previous_conditions)
+    current_score = sum(
+        current_conditions
+    )
+
+    previous_score = sum(
+        previous_conditions
+    )
 
     signal = None
 
     # Dört şartın tamamı ilk kez oluştu.
-    if current_score == 4 and previous_score < 4:
+    if (
+        current_score == 4
+        and
+        previous_score < 4
+    ):
         signal = "BUY"
 
-    # Daha önce dört şart vardı, artık bozuldu.
-    elif current_score < 4 and previous_score == 4:
+    # Daha önce dört şart vardı,
+    # artık bozuldu.
+    elif (
+        current_score < 4
+        and
+        previous_score == 4
+    ):
         signal = "SELL"
 
     return {
@@ -468,8 +548,12 @@ def calculate_signal(df):
         "price": float(current["close"]),
         "rsi": float(current["rsi"]),
         "ema200": float(current["ema200"]),
-        "supertrend": int(current["supertrend"]),
-        "ut_bull": bool(current["ut_bull"])
+        "supertrend": int(
+            current["supertrend"]
+        ),
+        "ut_bull": bool(
+            current["ut_bull"]
+        )
     }
 
 
@@ -488,6 +572,7 @@ def load_paper_trades():
             "r",
             encoding="utf-8"
         ) as f:
+
             data = json.load(f)
 
         if isinstance(data, list):
@@ -496,7 +581,11 @@ def load_paper_trades():
         return []
 
     except Exception as e:
-        log(f"Paper trade dosyası okunamadı: {e}")
+
+        log(
+            f"Paper trade dosyası okunamadı: {e}"
+        )
+
         return []
 
 
@@ -527,21 +616,39 @@ def open_paper_trade(
 ):
 
     open_trades = [
-        t for t in trades
+        t
+        for t in trades
         if t.get("status") == "OPEN"
     ]
 
     if len(open_trades) >= 10:
-        log("Maksimum 10 açık paper trade sınırına ulaşıldı.")
+
+        log(
+            "Maksimum 10 açık paper trade "
+            "sınırına ulaşıldı."
+        )
+
         return False
 
     for trade in open_trades:
+
         if trade.get("symbol") == symbol:
             return False
 
-    sl = entry_price * (1 - SL_PERCENT)
-    tp1 = entry_price * (1 + TP1_PERCENT)
-    tp2 = entry_price * (1 + TP2_PERCENT)
+    sl = (
+        entry_price *
+        (1 - SL_PERCENT)
+    )
+
+    tp1 = (
+        entry_price *
+        (1 + TP1_PERCENT)
+    )
+
+    tp2 = (
+        entry_price *
+        (1 + TP2_PERCENT)
+    )
 
     trade = {
         "symbol": symbol,
@@ -573,6 +680,21 @@ def open_paper_trade(
         f"entry={entry_price}"
     )
 
+    # ========================================================
+    # SANAL ALIŞ TELEGRAM BİLDİRİMİ
+    # ========================================================
+
+    send_telegram(
+        f"🟢 SANAL ALIŞ AÇILDI 🟢\n\n"
+        f"🪙 {symbol}\n"
+        f"📈 Yön: LONG\n\n"
+        f"💰 Giriş: {entry_price:.10g}\n"
+        f"🛑 SL: {sl:.10g} (-2%)\n"
+        f"🥇 TP1: {tp1:.10g} (+3%)\n"
+        f"🥈 TP2: {tp2:.10g} (+6%)\n\n"
+        f"📊 Paper Trade aktif"
+    )
+
     return True
 
 
@@ -594,28 +716,58 @@ def close_paper_trade(
         return 0
 
     pnl_pct = (
-        (exit_price - entry_price)
-        / entry_price
+        (
+            exit_price -
+            entry_price
+        )
+        /
+        entry_price
     ) * 100
 
     remaining_pct = safe_float(
-        trade.get("remaining_pct"),
+        trade.get(
+            "remaining_pct"
+        ),
         100
     )
 
     trade["realized_pnl_pct"] = (
-        safe_float(trade.get("realized_pnl_pct"))
-        + pnl_pct * (remaining_pct / 100)
+        safe_float(
+            trade.get(
+                "realized_pnl_pct"
+            )
+        )
+        +
+        pnl_pct *
+        (remaining_pct / 100)
     )
 
     trade["status"] = "CLOSED"
+
     trade["remaining_pct"] = 0
 
     trade["exit_time"] = now_utc()
+
     trade["exit_price"] = exit_price
+
     trade["exit_reason"] = reason
 
     return trade["realized_pnl_pct"]
+
+
+# ============================================================
+# KÂR / ZARAR EMOJİSİ
+# ============================================================
+
+def pnl_emoji(pnl):
+
+    if pnl > 0:
+        return "🟢"
+
+    if pnl < 0:
+        return "🔴"
+
+    return "🟡"
 
 
 # ============================================================
@@ -669,19 +821,26 @@ def update_paper_trades(
                 "STOP LOSS"
             )
 
+            emoji = pnl_emoji(pnl)
+
             log(
                 f"STOP LOSS: {symbol} "
                 f"PnL={pnl:.2f}%"
             )
 
             send_telegram(
-                f"🛑 PAPER TRADE STOP LOSS\n\n"
+                f"🔴 SANAL SATIŞ — ZARAR 🔴\n\n"
                 f"🪙 {symbol}\n"
+                f"💰 Giriş: {entry:.10g}\n"
                 f"💰 Çıkış: {current_price:.10g}\n"
-                f"📉 PnL: {pnl:.2f}%"
+                f"🛑 Sebep: STOP LOSS\n\n"
+                f"{emoji} "
+                f"GERÇEKLEŞEN PnL: "
+                f"{pnl:+.2f}%"
             )
 
             changed = True
+
             continue
 
         # ====================================================
@@ -689,23 +848,35 @@ def update_paper_trades(
         # ====================================================
 
         if (
-            not trade.get("tp1_hit", False)
-            and current_price >= tp1
+            not trade.get(
+                "tp1_hit",
+                False
+            )
+            and
+            current_price >= tp1
         ):
 
             half_pnl = (
-                (current_price - entry)
-                / entry
+                (
+                    current_price -
+                    entry
+                )
+                /
+                entry
             ) * 100 * 0.5
 
             trade["realized_pnl_pct"] = (
                 safe_float(
-                    trade.get("realized_pnl_pct")
+                    trade.get(
+                        "realized_pnl_pct"
+                    )
                 )
-                + half_pnl
+                +
+                half_pnl
             )
 
             trade["tp1_hit"] = True
+
             trade["remaining_pct"] = 50
 
             # TP1 sonrası SL giriş fiyatına taşınır.
@@ -717,11 +888,14 @@ def update_paper_trades(
             )
 
             send_telegram(
-                f"🎯 PAPER TRADE TP1\n\n"
+                f"🟡 SANAL İŞLEM — TP1 🟡\n\n"
                 f"🪙 {symbol}\n"
                 f"💰 Fiyat: {current_price:.10g}\n"
-                f"📈 TP1 gerçekleşti\n"
-                f"🛡️ SL giriş fiyatına taşındı"
+                f"🥇 TP1 gerçekleşti: +3%\n"
+                f"💵 İlk %50 pozisyon kapandı\n"
+                f"🛡️ SL giriş fiyatına taşındı\n\n"
+                f"📊 Gerçekleşen katkı: "
+                f"{half_pnl:+.2f}%"
             )
 
             changed = True
@@ -732,7 +906,8 @@ def update_paper_trades(
 
         if (
             trade.get("status") == "OPEN"
-            and current_price >= tp2
+            and
+            current_price >= tp2
         ):
 
             pnl = close_paper_trade(
@@ -747,10 +922,13 @@ def update_paper_trades(
             )
 
             send_telegram(
-                f"🎯🎯 PAPER TRADE TP2\n\n"
+                f"🟢 SANAL SATIŞ — TP2 KÂR 🟢\n\n"
                 f"🪙 {symbol}\n"
+                f"💰 Giriş: {entry:.10g}\n"
                 f"💰 Çıkış: {current_price:.10g}\n"
-                f"📈 Toplam PnL: {pnl:.2f}%"
+                f"🥈 Sebep: TAKE PROFIT 2\n\n"
+                f"🟢 TOPLAM PnL: "
+                f"{pnl:+.2f}%"
             )
 
             changed = True
@@ -784,18 +962,42 @@ def close_on_sell_signal(
             "SELL SIGNAL"
         )
 
+        emoji = pnl_emoji(pnl)
+
         log(
             f"SELL SIGNAL: {symbol} "
             f"PnL={pnl:.2f}%"
         )
 
-        send_telegram(
-            f"📉 PAPER TRADE SAT\n\n"
-            f"🪙 {symbol}\n"
-            f"💰 Çıkış: {price:.10g}\n"
-            f"📊 PnL: {pnl:.2f}%\n"
-            f"ℹ️ Sebep: SELL SIGNAL"
-        )
+        if pnl > 0:
+
+            send_telegram(
+                f"🟢 SANAL SATIŞ — KÂR 🟢\n\n"
+                f"🪙 {symbol}\n"
+                f"💰 Çıkış: {price:.10g}\n"
+                f"📊 PnL: {pnl:+.2f}%\n"
+                f"ℹ️ Sebep: SELL SIGNAL"
+            )
+
+        elif pnl < 0:
+
+            send_telegram(
+                f"🔴 SANAL SATIŞ — ZARAR 🔴\n\n"
+                f"🪙 {symbol}\n"
+                f"💰 Çıkış: {price:.10g}\n"
+                f"📊 PnL: {pnl:+.2f}%\n"
+                f"ℹ️ Sebep: SELL SIGNAL"
+            )
+
+        else:
+
+            send_telegram(
+                f"🟡 SANAL SATIŞ — BAŞA BAŞ 🟡\n\n"
+                f"🪙 {symbol}\n"
+                f"💰 Çıkış: {price:.10g}\n"
+                f"📊 PnL: {pnl:+.2f}%\n"
+                f"ℹ️ Sebep: SELL SIGNAL"
+            )
 
         changed = True
 
@@ -813,9 +1015,20 @@ def send_buy_signal(
 
     price = result["price"]
 
-    sl = price * (1 - SL_PERCENT)
-    tp1 = price * (1 + TP1_PERCENT)
-    tp2 = price * (1 + TP2_PERCENT)
+    sl = (
+        price *
+        (1 - SL_PERCENT)
+    )
+
+    tp1 = (
+        price *
+        (1 + TP1_PERCENT)
+    )
+
+    tp2 = (
+        price *
+        (1 + TP2_PERCENT)
+    )
 
     message = (
         "🚨 KRİPTO SİNYALİ 🚨\n\n"
@@ -833,6 +1046,10 @@ def send_buy_signal(
 
     send_telegram(message)
 
+
+# ============================================================
+# SELL BİLDİRİMİ
+# ============================================================
 
 def send_sell_signal(
     symbol,
@@ -880,7 +1097,8 @@ def main():
     trades = load_paper_trades()
 
     log(
-        f"Paper trade kayıtları: {len(trades)}"
+        f"Paper trade kayıtları: "
+        f"{len(trades)}"
     )
 
     # --------------------------------------------------------
@@ -888,6 +1106,7 @@ def main():
     # --------------------------------------------------------
 
     try:
+
         tickers = get_tickers()
 
     except Exception as e:
@@ -922,6 +1141,7 @@ def main():
     # --------------------------------------------------------
 
     try:
+
         symbols = get_symbols()
 
     except Exception as e:
@@ -953,7 +1173,8 @@ def main():
     ]
 
     log(
-        f"Taranacak coin sayısı: {len(symbols)}"
+        f"Taranacak coin sayısı: "
+        f"{len(symbols)}"
     )
 
     buy_count = 0
@@ -1018,6 +1239,7 @@ def main():
                 )
 
                 if opened:
+
                     save_paper_trades(
                         trades
                     )
@@ -1086,7 +1308,9 @@ def main():
 
     total_pnl = sum(
         safe_float(
-            trade.get("realized_pnl_pct")
+            trade.get(
+                "realized_pnl_pct"
+            )
         )
         for trade in trades
         if trade.get("status") == "CLOSED"
@@ -1103,7 +1327,10 @@ def main():
     log(f"Hata: {error_count}")
     log(f"Açık paper trade: {open_count}")
     log(f"Kapanmış paper trade: {closed_count}")
-    log(f"Toplam gerçekleşmiş PnL: {total_pnl:.2f}%")
+    log(
+        f"Toplam gerçekleşmiş PnL: "
+        f"{total_pnl:.2f}%"
+    )
     log("=" * 60)
 
 
