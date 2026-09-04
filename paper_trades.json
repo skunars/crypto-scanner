@@ -846,5 +846,21 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
+  },
+  {
+    "symbol": "ZEC-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-04T15:54:12.914332+00:00",
+    "entry_price": 985.74,
+    "sl": 966.0252,
+    "tp1": 1015.3122000000001,
+    "tp2": 1044.8844000000001,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
   }
 ]
