@@ -594,34 +594,34 @@
   {
     "symbol": "XSNDK-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T13:54:51.530939+00:00",
     "entry_price": 1638.13,
     "sl": 1638.13,
     "tp1": 1687.2739000000001,
     "tp2": 1736.4178000000002,
     "tp1_hit": true,
-    "remaining_pct": 50,
-    "realized_pnl_pct": 1.5230781439812426,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 3.8824757497878624,
+    "exit_time": "2026-09-04T17:26:43.738812+00:00",
+    "exit_price": 1715.43,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "XMU-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T13:54:56.725236+00:00",
     "entry_price": 988.1,
     "sl": 968.338,
     "tp1": 1017.743,
     "tp2": 1047.386,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 1.0990790405829383,
+    "exit_time": "2026-09-04T17:26:52.193424+00:00",
+    "exit_price": 998.96,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "XINTC-USDT",
@@ -866,18 +866,18 @@
   {
     "symbol": "ENA-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T16:31:14.358364+00:00",
     "entry_price": 0.16588,
     "sl": 0.1625624,
     "tp1": 0.1708564,
     "tp2": 0.1758328,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.7234145165179687,
+    "exit_time": "2026-09-04T17:26:36.376942+00:00",
+    "exit_price": 0.16468,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "XPL-USDT",
@@ -898,17 +898,17 @@
   {
     "symbol": "WLFI-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T17:12:51.047666+00:00",
     "entry_price": 0.05747,
     "sl": 0.0563206,
     "tp1": 0.0591941,
     "tp2": 0.060918200000000006,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.7134156951452943,
+    "exit_time": "2026-09-04T17:27:00.351184+00:00",
+    "exit_price": 0.05706,
+    "exit_reason": "SELL SIGNAL"
   }
 ]
