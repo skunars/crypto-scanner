@@ -578,18 +578,18 @@
   {
     "symbol": "XSOXL-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T13:54:47.786670+00:00",
     "entry_price": 114.7,
     "sl": 112.406,
     "tp1": 118.141,
     "tp2": 121.58200000000001,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.8282476024411533,
+    "exit_time": "2026-09-04T14:45:15.920996+00:00",
+    "exit_price": 115.65,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "XSNDK-USDT",
@@ -626,18 +626,18 @@
   {
     "symbol": "XINTC-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T13:55:01.031240+00:00",
     "entry_price": 92.98,
     "sl": 91.1204,
     "tp1": 95.7694,
     "tp2": 98.5588,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": 1.4519251451925084,
+    "exit_time": "2026-09-04T14:45:27.827936+00:00",
+    "exit_price": 94.33,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "XSKHY-USDT",
@@ -690,18 +690,18 @@
   {
     "symbol": "ARB-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T14:12:54.309832+00:00",
     "entry_price": 0.13521,
     "sl": 0.1325058,
     "tp1": 0.1392663,
     "tp2": 0.1433226,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -1.0132386657791659,
+    "exit_time": "2026-09-04T14:45:10.156520+00:00",
+    "exit_price": 0.13384,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "GRVT-USDT",
@@ -722,18 +722,18 @@
   {
     "symbol": "XSPCX-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T14:29:34.488039+00:00",
     "entry_price": 149.64,
     "sl": 146.6472,
     "tp1": 154.1292,
     "tp2": 158.61839999999998,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.060144346431418735,
+    "exit_time": "2026-09-04T14:45:21.338646+00:00",
+    "exit_price": 149.55,
+    "exit_reason": "SELL SIGNAL"
   },
   {
     "symbol": "AR-USDT",
