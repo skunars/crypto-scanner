@@ -530,17 +530,17 @@
   {
     "symbol": "EDGE-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-04T13:13:33.160035+00:00",
     "entry_price": 0.6454,
     "sl": 0.6324919999999999,
     "tp1": 0.664762,
     "tp2": 0.684124,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "remaining_pct": 0,
+    "realized_pnl_pct": -4.524325999380229,
+    "exit_time": "2026-09-04T13:30:36.032696+00:00",
+    "exit_price": 0.6162,
+    "exit_reason": "STOP LOSS"
   }
 ]
