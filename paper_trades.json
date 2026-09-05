@@ -1911,8 +1911,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:01.700939+00:00",
-    "last_checked_price": 6.287
+    "last_score_time": "2026-09-05T06:16:19.414491+00:00",
+    "last_checked_price": 6.274
   },
   {
     "symbol": "LPT-USDT",
@@ -1962,20 +1962,20 @@
     "status": "OPEN",
     "entry_time": "2026-09-05T04:29:15.350489+00:00",
     "entry_price": 0.3578,
-    "sl": 0.350644,
+    "sl": 0.3578,
     "tp1": 0.36853400000000003,
     "tp2": 0.37926800000000005,
-    "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "tp1_hit": true,
+    "remaining_pct": 50,
+    "realized_pnl_pct": 1.6070430408049203,
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788580800000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:21.356958+00:00",
-    "last_checked_price": 0.3644
+    "last_score_time": "2026-09-05T06:16:41.595549+00:00",
+    "last_checked_price": 0.3693
   },
   {
     "symbol": "AEON-USDT",
@@ -2037,8 +2037,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:00.998590+00:00",
-    "last_checked_price": 0.7676
+    "last_score_time": "2026-09-05T06:16:18.551748+00:00",
+    "last_checked_price": 0.7737
   },
   {
     "symbol": "ZEN-USDT",
@@ -2058,8 +2058,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:10.462004+00:00",
-    "last_checked_price": 7.865
+    "last_score_time": "2026-09-05T06:16:29.273293+00:00",
+    "last_checked_price": 7.847
   },
   {
     "symbol": "GRVT-USDT",
@@ -2121,8 +2121,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:09.760431+00:00",
-    "last_checked_price": 1.402
+    "last_score_time": "2026-09-05T06:16:28.867831+00:00",
+    "last_checked_price": 1.41
   },
   {
     "symbol": "LTC-USDT",
@@ -2142,8 +2142,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:06.493316+00:00",
-    "last_checked_price": 52.82
+    "last_score_time": "2026-09-05T06:16:23.676327+00:00",
+    "last_checked_price": 53.78
   },
   {
     "symbol": "TRX-USDT",
@@ -2163,7 +2163,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:52:07.565245+00:00",
-    "last_checked_price": 0.33187
+    "last_score_time": "2026-09-05T06:16:25.831061+00:00",
+    "last_checked_price": 0.332
   }
 ]
