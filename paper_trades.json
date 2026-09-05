@@ -2980,8 +2980,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T18:53:24.948150+00:00",
-    "last_checked_price": 134.68
+    "last_score_time": "2026-09-05T19:11:29.573176+00:00",
+    "last_checked_price": 134.19
   },
   {
     "symbol": "JUP-USDT",
@@ -3106,8 +3106,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T18:53:13.506308+00:00",
-    "last_checked_price": 103.83
+    "last_score_time": "2026-09-05T19:11:18.737323+00:00",
+    "last_checked_price": 103.89
   },
   {
     "symbol": "SUI-USDT",
@@ -3169,8 +3169,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T18:53:33.602103+00:00",
-    "last_checked_price": 0.6024
+    "last_score_time": "2026-09-05T19:11:38.052317+00:00",
+    "last_checked_price": 0.6031
   },
   {
     "symbol": "CRV-USDT",
@@ -3190,8 +3190,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T18:53:38.432725+00:00",
-    "last_checked_price": 0.3691
+    "last_score_time": "2026-09-05T19:11:42.270213+00:00",
+    "last_checked_price": 0.3674
   },
   {
     "symbol": "PEPE-USDT",
@@ -3220,20 +3220,20 @@
     "status": "OPEN",
     "entry_time": "2026-09-05T18:32:36.462378+00:00",
     "entry_price": 0.2538,
-    "sl": 0.24872400000000003,
+    "sl": 0.2538,
     "tp1": 0.26141400000000004,
     "tp2": 0.26902800000000004,
-    "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "tp1_hit": true,
+    "remaining_pct": 50,
+    "realized_pnl_pct": 1.5169424743892796,
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788632100000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T18:53:29.674105+00:00",
-    "last_checked_price": 0.2589
+    "last_score_time": "2026-09-05T19:11:33.318607+00:00",
+    "last_checked_price": 0.2615
   },
   {
     "symbol": "ZK-USDT",
@@ -3253,8 +3253,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T18:53:43.355105+00:00",
-    "last_checked_price": 0.009942
+    "last_score_time": "2026-09-05T19:11:47.262075+00:00",
+    "last_checked_price": 0.01
   },
   {
     "symbol": "FIL-USDT",
@@ -3273,6 +3273,8 @@
     "signal_candle_ts": 1788633000000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T19:11:27.036195+00:00",
+    "last_checked_price": 0.785
   }
 ]
