@@ -2791,8 +2791,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T14:52:08.209965+00:00",
-    "last_checked_price": 2.964
+    "last_score_time": "2026-09-05T15:12:37.022327+00:00",
+    "last_checked_price": 2.937
   },
   {
     "symbol": "LIT-USDT",
@@ -2812,8 +2812,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T14:51:57.675156+00:00",
-    "last_checked_price": 4.6916
+    "last_score_time": "2026-09-05T15:12:25.368972+00:00",
+    "last_checked_price": 4.7261
   },
   {
     "symbol": "ZEN-USDT",
@@ -2854,8 +2854,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T14:52:09.635339+00:00",
-    "last_checked_price": 0.05813
+    "last_score_time": "2026-09-05T15:12:39.167925+00:00",
+    "last_checked_price": 0.05825
   },
   {
     "symbol": "GRVT-USDT",
@@ -2875,8 +2875,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T14:52:14.085784+00:00",
-    "last_checked_price": 0.16275
+    "last_score_time": "2026-09-05T15:12:43.952136+00:00",
+    "last_checked_price": 0.16452
   },
   {
     "symbol": "RE-USDT",
@@ -2917,8 +2917,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T14:51:56.591746+00:00",
-    "last_checked_price": 68.6
+    "last_score_time": "2026-09-05T15:12:24.097358+00:00",
+    "last_checked_price": 69.38
   },
   {
     "symbol": "TRUMP-USDT",
@@ -2958,7 +2958,9 @@
     "signal_candle_ts": 1788618600000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T15:12:22.108425+00:00",
+    "last_checked_price": 1017.01
   },
   {
     "symbol": "AAVE-USDT",
@@ -2973,10 +2975,12 @@
     "remaining_pct": 100,
     "realized_pnl_pct": 0,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788618600000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T15:12:34.095304+00:00",
+    "last_checked_price": 130.75
   }
 ]
