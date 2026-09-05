@@ -2980,8 +2980,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T19:38:08.264794+00:00",
-    "last_checked_price": 134.95
+    "last_score_time": "2026-09-05T19:52:03.193905+00:00",
+    "last_checked_price": 134.54
   },
   {
     "symbol": "JUP-USDT",
@@ -3091,23 +3091,23 @@
   {
     "symbol": "SOL-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T16:42:09.515666+00:00",
     "entry_price": 103.12,
     "sl": 101.05760000000001,
     "tp1": 106.21360000000001,
     "tp2": 109.30720000000001,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.562451512800619,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788624900000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T19:37:57.097682+00:00",
-    "last_checked_price": 103.66
+    "exit_time": "2026-09-05T19:52:24.040471+00:00",
+    "exit_price": 103.7,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T19:51:52.820536+00:00",
+    "last_checked_price": 103.42
   },
   {
     "symbol": "SUI-USDT",
@@ -3169,8 +3169,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T19:38:16.678307+00:00",
-    "last_checked_price": 0.6026
+    "last_score_time": "2026-09-05T19:52:11.312455+00:00",
+    "last_checked_price": 0.603
   },
   {
     "symbol": "CRV-USDT",
@@ -3238,23 +3238,23 @@
   {
     "symbol": "ZK-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T18:32:37.519869+00:00",
     "entry_price": 0.00994,
     "sl": 0.009741199999999998,
     "tp1": 0.0102382,
     "tp2": 0.0105364,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 1.0362173038229443,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788632100000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T19:38:26.600772+00:00",
-    "last_checked_price": 0.010069
+    "exit_time": "2026-09-05T19:52:25.446994+00:00",
+    "exit_price": 0.010043,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T19:52:20.633081+00:00",
+    "last_checked_price": 0.010053
   },
   {
     "symbol": "FIL-USDT",
@@ -3274,29 +3274,29 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T19:38:05.678164+00:00",
-    "last_checked_price": 0.7868
+    "last_score_time": "2026-09-05T19:52:00.808064+00:00",
+    "last_checked_price": 0.7889
   },
   {
     "symbol": "HYPE-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T19:26:05.460774+00:00",
     "entry_price": 86.045,
     "sl": 84.3241,
     "tp1": 88.62635,
     "tp2": 91.2077,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.5078737869719305,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788634800000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T19:37:59.233916+00:00",
-    "last_checked_price": 85.518
+    "exit_time": "2026-09-05T19:52:24.729417+00:00",
+    "exit_price": 85.608,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T19:51:54.792133+00:00",
+    "last_checked_price": 85.429
   },
   {
     "symbol": "ONDO-USDT",
@@ -3316,7 +3316,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T19:38:07.012399+00:00",
-    "last_checked_price": 0.3695
+    "last_score_time": "2026-09-05T19:52:02.015086+00:00",
+    "last_checked_price": 0.3689
   }
 ]
