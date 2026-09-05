@@ -1911,8 +1911,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:15.455667+00:00",
-    "last_checked_price": 6.276
+    "last_score_time": "2026-09-05T06:54:42.736959+00:00",
+    "last_checked_price": 6.304
   },
   {
     "symbol": "LPT-USDT",
@@ -1974,8 +1974,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:33.535259+00:00",
-    "last_checked_price": 0.3681
+    "last_score_time": "2026-09-05T06:55:03.867579+00:00",
+    "last_checked_price": 0.3678
   },
   {
     "symbol": "AEON-USDT",
@@ -2037,7 +2037,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:14.744819+00:00",
+    "last_score_time": "2026-09-05T06:54:41.862884+00:00",
     "last_checked_price": 0.7796
   },
   {
@@ -2058,8 +2058,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:23.021677+00:00",
-    "last_checked_price": 8.002
+    "last_score_time": "2026-09-05T06:54:52.196453+00:00",
+    "last_checked_price": 7.926
   },
   {
     "symbol": "GRVT-USDT",
@@ -2121,8 +2121,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:23.381615+00:00",
-    "last_checked_price": 1.411
+    "last_score_time": "2026-09-05T06:54:51.771908+00:00",
+    "last_checked_price": 1.415
   },
   {
     "symbol": "LTC-USDT",
@@ -2142,8 +2142,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:18.689227+00:00",
-    "last_checked_price": 53.76
+    "last_score_time": "2026-09-05T06:54:46.175864+00:00",
+    "last_checked_price": 53.66
   },
   {
     "symbol": "TRX-USDT",
@@ -2163,7 +2163,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T06:42:20.868165+00:00",
-    "last_checked_price": 0.33273
+    "last_score_time": "2026-09-05T06:54:49.188463+00:00",
+    "last_checked_price": 0.33277
   }
 ]
