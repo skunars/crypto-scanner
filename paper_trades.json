@@ -2692,23 +2692,23 @@
   {
     "symbol": "ADA-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T12:43:44.289575+00:00",
     "entry_price": 0.214,
     "sl": 0.20972,
     "tp1": 0.22042,
     "tp2": 0.22684,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.6074766355140166,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788610500000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T14:11:50.102238+00:00",
-    "last_checked_price": 0.2154
+    "exit_time": "2026-09-05T14:26:47.994979+00:00",
+    "exit_price": 0.2153,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T14:26:25.965744+00:00",
+    "last_checked_price": 0.2161
   },
   {
     "symbol": "BTC-USDT",
@@ -2791,8 +2791,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T14:11:58.483187+00:00",
-    "last_checked_price": 2.874
+    "last_score_time": "2026-09-05T14:26:33.881303+00:00",
+    "last_checked_price": 2.911
   },
   {
     "symbol": "LIT-USDT",
@@ -2811,26 +2811,30 @@
     "signal_candle_ts": 1788615900000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T14:26:22.415777+00:00",
+    "last_checked_price": 4.7415
   },
   {
     "symbol": "ZEN-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T14:12:14.770848+00:00",
     "entry_price": 7.352,
     "sl": 7.20496,
     "tp1": 7.57256,
     "tp2": 7.793120000000001,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.5984766050054473,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788615900000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null
+    "exit_time": "2026-09-05T14:26:49.084503+00:00",
+    "exit_price": 7.308,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T14:26:27.782961+00:00",
+    "last_checked_price": 7.28
   },
   {
     "symbol": "CHIP-USDT",
@@ -2849,7 +2853,9 @@
     "signal_candle_ts": 1788615900000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T14:26:34.591625+00:00",
+    "last_checked_price": 0.0581
   },
   {
     "symbol": "GRVT-USDT",
@@ -2868,7 +2874,9 @@
     "signal_candle_ts": 1788615900000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T14:26:39.245712+00:00",
+    "last_checked_price": 0.16277
   },
   {
     "symbol": "RE-USDT",
@@ -2885,6 +2893,46 @@
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788615900000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T14:26:45.391723+00:00",
+    "last_checked_price": 0.45358
+  },
+  {
+    "symbol": "DASH-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T14:26:50.076743+00:00",
+    "entry_price": 69.53,
+    "sl": 68.1394,
+    "tp1": 71.6159,
+    "tp2": 73.7018,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788616800000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "TRUMP-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T14:26:51.048475+00:00",
+    "entry_price": 2.395,
+    "sl": 2.3471,
+    "tp1": 2.46685,
+    "tp2": 2.5387,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788616800000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
