@@ -1911,8 +1911,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:11:59.709142+00:00",
-    "last_checked_price": 6.288
+    "last_score_time": "2026-09-05T05:26:53.791726+00:00",
+    "last_checked_price": 6.293
   },
   {
     "symbol": "LPT-USDT",
@@ -1938,21 +1938,21 @@
   {
     "symbol": "DASH-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T04:29:14.536330+00:00",
     "entry_price": 67.42,
-    "sl": 66.0716,
+    "sl": 67.42,
     "tp1": 69.4426,
     "tp2": 71.46520000000001,
-    "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "tp1_hit": true,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 6.081281518837132,
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788580800000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
+    "exit_time": "2026-09-05T05:26:48.658964+00:00",
+    "exit_price": 71.52,
+    "exit_reason": "TAKE PROFIT 2",
     "last_score_time": "2026-09-05T05:12:00.536991+00:00",
     "last_checked_price": 69.32
   },
@@ -1974,8 +1974,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:12:22.011750+00:00",
-    "last_checked_price": 0.3621
+    "last_score_time": "2026-09-05T05:27:15.791744+00:00",
+    "last_checked_price": 0.3648
   },
   {
     "symbol": "AEON-USDT",
@@ -2037,8 +2037,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:11:58.882960+00:00",
-    "last_checked_price": 0.7672
+    "last_score_time": "2026-09-05T05:26:52.912386+00:00",
+    "last_checked_price": 0.765
   },
   {
     "symbol": "ZEN-USDT",
@@ -2058,8 +2058,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:12:10.220276+00:00",
-    "last_checked_price": 7.505
+    "last_score_time": "2026-09-05T05:27:03.986368+00:00",
+    "last_checked_price": 7.697
   },
   {
     "symbol": "GRVT-USDT",
@@ -2079,24 +2079,45 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T05:12:15.288684+00:00",
-    "last_checked_price": 0.1618
+    "last_score_time": "2026-09-05T05:27:09.508999+00:00",
+    "last_checked_price": 0.161
   },
   {
     "symbol": "PUMP-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T05:12:30.223056+00:00",
     "entry_price": 0.004262,
     "sl": 0.00417676,
     "tp1": 0.004389860000000001,
     "tp2": 0.00451772,
     "tp1_hit": false,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.5631159080244154,
+    "signal_score": 4,
+    "last_score": 1,
+    "signal_candle_ts": 1788583500000,
+    "exit_time": "2026-09-05T05:27:23.693158+00:00",
+    "exit_price": 0.004238,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T05:26:58.137719+00:00",
+    "last_checked_price": 0.004201
+  },
+  {
+    "symbol": "GRAM-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T05:27:24.331308+00:00",
+    "entry_price": 1.403,
+    "sl": 1.37494,
+    "tp1": 1.44509,
+    "tp2": 1.4871800000000002,
+    "tp1_hit": false,
     "remaining_pct": 100,
     "realized_pnl_pct": 0,
     "signal_score": 4,
     "last_score": 4,
-    "signal_candle_ts": 1788583500000,
+    "signal_candle_ts": 1788584400000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
