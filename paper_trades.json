@@ -2980,8 +2980,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:52:00.705827+00:00",
-    "last_checked_price": 132.64
+    "last_score_time": "2026-09-05T18:14:13.894866+00:00",
+    "last_checked_price": 133.4
   },
   {
     "symbol": "JUP-USDT",
@@ -3043,8 +3043,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:51:57.983080+00:00",
-    "last_checked_price": 258.0
+    "last_score_time": "2026-09-05T18:14:11.814497+00:00",
+    "last_checked_price": 258.7
   },
   {
     "symbol": "JTO-USDT",
@@ -3106,8 +3106,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:51:49.099884+00:00",
-    "last_checked_price": 103.87
+    "last_score_time": "2026-09-05T18:14:02.228512+00:00",
+    "last_checked_price": 103.98
   },
   {
     "symbol": "SUI-USDT",
@@ -3148,8 +3148,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:51:53.361307+00:00",
-    "last_checked_price": 4.7856
+    "last_score_time": "2026-09-05T18:14:06.774030+00:00",
+    "last_checked_price": 4.7704
   },
   {
     "symbol": "APT-USDT",
@@ -3168,7 +3168,9 @@
     "signal_candle_ts": 1788629400000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T18:14:21.536928+00:00",
+    "last_checked_price": 0.6015
   },
   {
     "symbol": "CRV-USDT",
@@ -3185,6 +3187,27 @@
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788629400000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T18:14:27.049398+00:00",
+    "last_checked_price": 0.3682
+  },
+  {
+    "symbol": "PEPE-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T18:14:35.325533+00:00",
+    "entry_price": 3.672e-06,
+    "sl": 3.59856e-06,
+    "tp1": 3.78216e-06,
+    "tp2": 3.8923200000000005e-06,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788630300000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
