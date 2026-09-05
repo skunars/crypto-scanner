@@ -2581,8 +2581,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T13:13:11.160598+00:00",
-    "last_checked_price": 1.427
+    "last_score_time": "2026-09-05T13:27:32.936217+00:00",
+    "last_checked_price": 1.425
   },
   {
     "symbol": "TRUMP-USDT",
@@ -2623,8 +2623,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T13:13:00.604410+00:00",
-    "last_checked_price": 85.129
+    "last_score_time": "2026-09-05T13:27:24.436200+00:00",
+    "last_checked_price": 85.556
   },
   {
     "symbol": "FIL-USDT",
@@ -2644,8 +2644,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T13:13:08.184613+00:00",
-    "last_checked_price": 0.7934
+    "last_score_time": "2026-09-05T13:27:30.814956+00:00",
+    "last_checked_price": 0.7883
   },
   {
     "symbol": "SUI-USDT",
@@ -2665,7 +2665,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T13:13:01.024329+00:00",
+    "last_score_time": "2026-09-05T13:27:24.788420+00:00",
     "last_checked_price": 0.7988
   },
   {
@@ -2707,8 +2707,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T13:13:06.450702+00:00",
-    "last_checked_price": 0.2162
+    "last_score_time": "2026-09-05T13:27:29.039236+00:00",
+    "last_checked_price": 0.2166
   },
   {
     "symbol": "BTC-USDT",
@@ -2728,8 +2728,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T13:12:58.479131+00:00",
-    "last_checked_price": 79671.0
+    "last_score_time": "2026-09-05T13:27:22.645405+00:00",
+    "last_checked_price": 79749.1
   },
   {
     "symbol": "ARB-USDT",
@@ -2748,6 +2748,8 @@
     "signal_candle_ts": 1788612300000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T13:27:29.399979+00:00",
+    "last_checked_price": 0.13377
   }
 ]
