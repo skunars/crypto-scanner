@@ -2329,8 +2329,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T11:52:15.780569+00:00",
-    "last_checked_price": 239.9
+    "last_score_time": "2026-09-05T12:15:52.720864+00:00",
+    "last_checked_price": 239.2
   },
   {
     "symbol": "TRX-USDT",
@@ -2476,8 +2476,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T11:52:09.382284+00:00",
-    "last_checked_price": 2.272
+    "last_score_time": "2026-09-05T12:15:45.876798+00:00",
+    "last_checked_price": 2.275
   },
   {
     "symbol": "TRX-USDT",
@@ -2497,8 +2497,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T11:52:14.560030+00:00",
-    "last_checked_price": 0.3332
+    "last_score_time": "2026-09-05T12:15:51.542932+00:00",
+    "last_checked_price": 0.33319
   },
   {
     "symbol": "ZEC-USDT",
@@ -2527,20 +2527,20 @@
     "status": "OPEN",
     "entry_time": "2026-09-05T10:40:09.766040+00:00",
     "entry_price": 0.7653,
-    "sl": 0.7499939999999999,
+    "sl": 0.7653,
     "tp1": 0.788259,
     "tp2": 0.811218,
-    "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "tp1_hit": true,
+    "remaining_pct": 50,
+    "realized_pnl_pct": 2.1102835489350578,
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788603300000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T11:52:20.931757+00:00",
-    "last_checked_price": 0.7865
+    "last_score_time": "2026-09-05T12:15:56.338766+00:00",
+    "last_checked_price": 0.7976
   },
   {
     "symbol": "SOL-USDT",
@@ -2581,8 +2581,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T11:52:16.136808+00:00",
-    "last_checked_price": 1.423
+    "last_score_time": "2026-09-05T12:15:53.127065+00:00",
+    "last_checked_price": 1.426
   },
   {
     "symbol": "TRUMP-USDT",
@@ -2623,8 +2623,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T11:52:06.764305+00:00",
-    "last_checked_price": 85.018
+    "last_score_time": "2026-09-05T12:15:43.100759+00:00",
+    "last_checked_price": 84.809
   },
   {
     "symbol": "FIL-USDT",
@@ -2643,6 +2643,8 @@
     "signal_candle_ts": 1788607800000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T12:15:50.276257+00:00",
+    "last_checked_price": 0.7754
   }
 ]
