@@ -5,6 +5,21 @@ from datetime import datetime, timezone
 
 import requests
 import pandas as pd
+import numpy as np
+
+
+# ============================================================
+# TREND RIDER CRYPTO SCANNER
+# ============================================================
+# OKX SPOT
+# 15m ana trend
+# 1h üst zaman dilimi onayı
+# 0-100 ağırlıklı skor
+# ATR + market structure stop
+# Dinamik trailing stop
+# Sabit TP YOK
+# Her paper trade = 100 TL
+# ============================================================
 
 
 # ============================================================
@@ -13,46 +28,134 @@ import pandas as pd
 
 OKX_BASE_URL = "https://www.okx.com"
 
-BAR = "15m"
-CANDLE_LIMIT = 220
+MAIN_BAR = "15m"
+HTF_BAR = "1H"
 
-RSI_LENGTH = 14
-EMA_LENGTH = 200
-
-SUPERTREND_ATR_LENGTH = 10
-SUPERTREND_FACTOR = 3.0
-
-UT_ATR_LENGTH = 10
-UT_SENSITIVITY = 1.0
+MAIN_CANDLE_LIMIT = 250
+HTF_CANDLE_LIMIT = 250
 
 MAX_SYMBOLS_TO_SCAN = 80
+MAX_FINAL_CANDIDATES = 20
 MAX_OPEN_TRADES = 10
 
-SL_PERCENT = 0.02
-TP1_PERCENT = 0.03
-TP2_PERCENT = 0.06
+STAKE_TL = 100.0
 
-# Yeni sinyal geldiğinde mevcut işlemin değiştirilmesi
-# için minimum avantaj.
-# Yeni sinyal 4/4 olduğu için mevcut işlemin skoru
-# bunun altında olmalıdır.
-REPLACEMENT_MIN_SCORE = 2
+# ------------------------------------------------------------
+# PAPER TRADE MALİYETLERİ
+# ------------------------------------------------------------
 
-# Çok küçük kârlarla sürekli işlem değiştirmemek için.
-LOW_PROFIT_THRESHOLD = 0.005  # %0.5
+# Değiştirilebilir.
+# OKX hesap seviyesine göre gerçek oran farklı olabilir.
+TAKER_FEE_RATE = float(
+    os.getenv(
+        "OKX_TAKER_FEE_RATE",
+        "0.001"
+    )
+)
+
+SLIPPAGE_RATE = float(
+    os.getenv(
+        "PAPER_SLIPPAGE_RATE",
+        "0.0005"
+    )
+
+
+# ============================================================
+# GİRİŞ SKORU
+# ============================================================
+
+ENTRY_SCORE_MIN = 75
+
+# Çok zayıf trendlerde işlem açma
+MIN_ADX_FOR_TREND = 18
+
+# Güçlü trend için ekstra avantaj
+STRONG_TREND_SCORE = 82
+
+
+# ============================================================
+# RİSK / STOP AYARLARI
+# ============================================================
+
+ATR_LENGTH = 14
+
+INITIAL_ATR_MULTIPLIER = 2.2
+
+MIN_INITIAL_STOP_PCT = 0.012
+MAX_INITIAL_STOP_PCT = 0.055
+
+
+# ============================================================
+# TRAILING STOP
+# ============================================================
+
+# İşlem kâra geçtikçe koruma artar.
+
+TRAIL_START_PROFIT = 0.025       # +2.5%
+
+TRAIL_LEVELS = [
+    # peak profit, izin verilen geri çekilme
+    (0.025, 0.020),   # +2.5  -> yaklaşık %2 geri verme
+    (0.050, 0.018),   # +5   -> %1.8
+    (0.075, 0.017),   # +7.5 -> %1.7
+    (0.100, 0.016),   # +10  -> %1.6
+    (0.150, 0.015),   # +15  -> %1.5
+    (0.200, 0.014),   # +20  -> %1.4
+    (0.250, 0.013),   # +25  -> %1.3
+    (0.300, 0.012),   # +30  -> %1.2
+    (0.400, 0.011),   # +40  -> %1.1
+    (0.500, 0.010),   # +50  -> %1
+]
+
+
+# ============================================================
+# KÂR KORUMA
+# ============================================================
+
+# +5% görülünce minimum yaklaşık +2% korumaya çalış.
+# +10% görülünce minimum yaklaşık +5% korumaya çalış.
+# +20% görülünce minimum yaklaşık +10% korumaya çalış.
+
+PROFIT_LOCK_LEVELS = [
+    (0.05, 0.015),
+    (0.10, 0.040),
+    (0.15, 0.070),
+    (0.20, 0.100),
+    (0.25, 0.140),
+    (0.30, 0.180),
+    (0.40, 0.250),
+    (0.50, 0.330),
+]
+
+
+# ============================================================
+# TELEGRAM
+# ============================================================
+
+TELEGRAM_BOT_TOKEN = os.getenv(
+    "TELEGRAM_BOT_TOKEN"
+)
+
+TELEGRAM_CHAT_ID = os.getenv(
+    "TELEGRAM_CHAT_ID"
+)
+
+
+# ============================================================
+# DOSYA
+# ============================================================
 
 PAPER_FILE = "paper_trades.json"
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
 
 # ============================================================
-# GENEL YARDIMCI FONKSİYONLAR
+# GENEL
 # ============================================================
 
 def now_utc():
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(
+        timezone.utc
+    ).isoformat()
 
 
 def log(message):
@@ -69,14 +172,11 @@ def safe_float(value, default=0.0):
         return default
 
 
-def pnl_emoji(pnl):
-    if pnl > 0:
-        return "🟢"
-
-    if pnl < 0:
-        return "🔴"
-
-    return "🟡"
+def clamp(value, low, high):
+    return max(
+        low,
+        min(high, value)
+    )
 
 
 # ============================================================
@@ -84,14 +184,15 @@ def pnl_emoji(pnl):
 # ============================================================
 
 def send_telegram(message):
+
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         log(
-            "TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID bulunamadı."
+            "Telegram bilgileri bulunamadı."
         )
         return False
 
     url = (
-        f"https://api.telegram.org/bot"
+        "https://api.telegram.org/bot"
         f"{TELEGRAM_BOT_TOKEN}/sendMessage"
     )
 
@@ -101,6 +202,7 @@ def send_telegram(message):
     }
 
     try:
+
         response = requests.post(
             url,
             json=payload,
@@ -108,30 +210,33 @@ def send_telegram(message):
         )
 
         if response.ok:
-            log("Telegram mesajı gönderildi.")
             return True
 
         log(
             f"Telegram hatası: "
-            f"{response.status_code} {response.text}"
+            f"{response.status_code}"
         )
 
-        return False
-
     except Exception as e:
-        log(f"Telegram bağlantı hatası: {e}")
-        return False
+
+        log(
+            f"Telegram bağlantı hatası: {e}"
+        )
+
+    return False
 
 
 # ============================================================
-# OKX API
+# OKX
 # ============================================================
 
-def okx_get(path, params=None):
-    url = OKX_BASE_URL + path
+def okx_get(
+    path,
+    params=None
+):
 
     response = requests.get(
-        url,
+        OKX_BASE_URL + path,
         params=params,
         timeout=20
     )
@@ -141,34 +246,34 @@ def okx_get(path, params=None):
     data = response.json()
 
     if data.get("code") != "0":
+
         raise RuntimeError(
-            f"OKX API hatası: "
-            f"{data.get('msg', 'Bilinmeyen hata')}"
+            data.get(
+                "msg",
+                "OKX API hatası"
+            )
         )
 
-    return data.get("data", [])
+    return data.get(
+        "data",
+        []
+    )
 
 
 # ============================================================
-# KRİPTO SEMBOL FİLTRESİ
+# SYMBOL FİLTRESİ
 # ============================================================
 
-def is_crypto_symbol(inst_id):
-    """
-    OKX üzerindeki SPOT-USDT listesinden,
-    klasik kripto varlıkları tutmaya çalışır.
+def is_crypto_symbol(
+    symbol
+):
 
-    X ile başlayan tokenized / hisse / ETF benzeri
-    sembolleri dışarıda bırakır.
-    """
-
-    if not inst_id.endswith("-USDT"):
+    if not symbol.endswith("-USDT"):
         return False
 
-    base = inst_id[:-5].upper()
+    base = symbol[:-5].upper()
 
-    # Stablecoin çiftleri
-    excluded_stablecoins = {
+    excluded = {
         "USDC",
         "USDT",
         "USDE",
@@ -180,17 +285,21 @@ def is_crypto_symbol(inst_id):
         "PYUSD"
     }
 
-    if base in excluded_stablecoins:
+    if base in excluded:
         return False
 
-    # Tokenized hisse / ETF / benzeri OKX sembolleri
     if base.startswith("X"):
         return False
 
     return True
 
 
+# ============================================================
+# SYMBOLS
+# ============================================================
+
 def get_symbols():
+
     data = okx_get(
         "/api/v5/public/instruments",
         {
@@ -201,20 +310,29 @@ def get_symbols():
     symbols = []
 
     for item in data:
-        inst_id = item.get("instId", "")
+
+        symbol = item.get(
+            "instId",
+            ""
+        )
 
         if item.get("state") != "live":
             continue
 
-        if not is_crypto_symbol(inst_id):
+        if not is_crypto_symbol(symbol):
             continue
 
-        symbols.append(inst_id)
+        symbols.append(symbol)
 
     return symbols
 
 
+# ============================================================
+# TICKERS
+# ============================================================
+
 def get_tickers():
+
     data = okx_get(
         "/api/v5/market/tickers",
         {
@@ -225,7 +343,10 @@ def get_tickers():
     result = {}
 
     for item in data:
-        symbol = item.get("instId")
+
+        symbol = item.get(
+            "instId"
+        )
 
         if not symbol:
             continue
@@ -234,7 +355,9 @@ def get_tickers():
             continue
 
         result[symbol] = {
-            "last": safe_float(item.get("last")),
+            "last": safe_float(
+                item.get("last")
+            ),
             "volCcy24h": safe_float(
                 item.get("volCcy24h")
             )
@@ -243,22 +366,29 @@ def get_tickers():
     return result
 
 
-def get_candles(symbol):
+# ============================================================
+# CANDLES
+# ============================================================
+
+def get_candles(
+    symbol,
+    bar,
+    limit
+):
+
     data = okx_get(
         "/api/v5/market/candles",
         {
             "instId": symbol,
-            "bar": BAR,
-            "limit": CANDLE_LIMIT
+            "bar": bar,
+            "limit": limit
         }
     )
-
-    if not data:
-        return pd.DataFrame()
 
     rows = []
 
     for candle in data:
+
         if len(candle) < 9:
             continue
 
@@ -272,12 +402,17 @@ def get_candles(symbol):
             "confirm": str(candle[8])
         })
 
+    if not rows:
+        return pd.DataFrame()
+
     df = pd.DataFrame(rows)
 
-    if df.empty:
-        return df
-
-    df = df.sort_values("ts").reset_index(drop=True)
+    df = (
+        df
+        .sort_values("ts")
+        .drop_duplicates("ts")
+        .reset_index(drop=True)
+    )
 
     return df
 
@@ -286,11 +421,20 @@ def get_candles(symbol):
 # RSI
 # ============================================================
 
-def calculate_rsi(close, length=14):
+def calculate_rsi(
+    close,
+    length=14
+):
+
     delta = close.diff()
 
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
+    gain = delta.clip(
+        lower=0
+    )
+
+    loss = -delta.clip(
+        upper=0
+    )
 
     avg_gain = gain.ewm(
         alpha=1 / length,
@@ -304,12 +448,19 @@ def calculate_rsi(close, length=14):
         min_periods=length
     ).mean()
 
-    rs = avg_gain / avg_loss.replace(
-        0,
-        float("nan")
+    rs = (
+        avg_gain /
+        avg_loss.replace(
+            0,
+            np.nan
+        )
     )
 
-    rsi = 100 - (100 / (1 + rs))
+    rsi = (
+        100 -
+        100 /
+        (1 + rs)
+    )
 
     return rsi.fillna(50)
 
@@ -318,29 +469,86 @@ def calculate_rsi(close, length=14):
 # ATR
 # ============================================================
 
-def calculate_atr(df, length=10):
+def calculate_atr(
+    df,
+    length=14
+):
+
     high = df["high"]
     low = df["low"]
     close = df["close"]
 
     previous_close = close.shift(1)
 
-    tr1 = high - low
-    tr2 = (high - previous_close).abs()
-    tr3 = (low - previous_close).abs()
-
-    true_range = pd.concat(
-        [tr1, tr2, tr3],
+    tr = pd.concat(
+        [
+            high - low,
+            (high - previous_close).abs(),
+            (low - previous_close).abs()
+        ],
         axis=1
     ).max(axis=1)
 
-    atr = true_range.ewm(
+    return tr.ewm(
         alpha=1 / length,
         adjust=False,
         min_periods=length
     ).mean()
 
-    return atr
+
+# ============================================================
+# EMA
+# ============================================================
+
+def ema(
+    series,
+    length
+):
+
+    return series.ewm(
+        span=length,
+        adjust=False
+    ).mean()
+
+
+# ============================================================
+# MACD
+# ============================================================
+
+def calculate_macd(
+    close
+):
+
+    ema12 = ema(
+        close,
+        12
+    )
+
+    ema26 = ema(
+        close,
+        26
+    )
+
+    macd = (
+        ema12 -
+        ema26
+    )
+
+    signal = ema(
+        macd,
+        9
+    )
+
+    histogram = (
+        macd -
+        signal
+    )
+
+    return (
+        macd,
+        signal,
+        histogram
+    )
 
 
 # ============================================================
@@ -352,6 +560,7 @@ def calculate_supertrend(
     atr_length=10,
     factor=3.0
 ):
+
     atr = calculate_atr(
         df,
         atr_length
@@ -362,50 +571,59 @@ def calculate_supertrend(
         df["low"]
     ) / 2
 
-    upper_band = (
+    upper = (
         hl2 +
         factor * atr
     )
 
-    lower_band = (
+    lower = (
         hl2 -
         factor * atr
     )
 
-    final_upper = upper_band.copy()
-    final_lower = lower_band.copy()
+    final_upper = upper.copy()
+    final_lower = lower.copy()
 
     direction = pd.Series(
+        1,
         index=df.index,
-        dtype="int64"
+        dtype=int
     )
-
-    direction.iloc[0] = 1
 
     for i in range(1, len(df)):
 
         if (
-            upper_band.iloc[i]
+            upper.iloc[i]
             < final_upper.iloc[i - 1]
             or
             df["close"].iloc[i - 1]
             > final_upper.iloc[i - 1]
         ):
-            final_upper.iloc[i] = upper_band.iloc[i]
+
+            final_upper.iloc[i] = (
+                upper.iloc[i]
+            )
+
         else:
+
             final_upper.iloc[i] = (
                 final_upper.iloc[i - 1]
             )
 
         if (
-            lower_band.iloc[i]
+            lower.iloc[i]
             > final_lower.iloc[i - 1]
             or
             df["close"].iloc[i - 1]
             < final_lower.iloc[i - 1]
         ):
-            final_lower.iloc[i] = lower_band.iloc[i]
+
+            final_lower.iloc[i] = (
+                lower.iloc[i]
+            )
+
         else:
+
             final_lower.iloc[i] = (
                 final_lower.iloc[i - 1]
             )
@@ -416,8 +634,11 @@ def calculate_supertrend(
                 df["close"].iloc[i]
                 > final_upper.iloc[i]
             ):
+
                 direction.iloc[i] = 1
+
             else:
+
                 direction.iloc[i] = -1
 
         else:
@@ -426,204 +647,697 @@ def calculate_supertrend(
                 df["close"].iloc[i]
                 < final_lower.iloc[i]
             ):
+
                 direction.iloc[i] = -1
+
             else:
+
                 direction.iloc[i] = 1
 
     return direction
 
 
 # ============================================================
-# UT BOT
+# ADX
 # ============================================================
 
-def calculate_ut_bot(
+def calculate_adx(
     df,
-    atr_length=10,
-    sensitivity=1.0
+    length=14
 ):
+
+    high = df["high"]
+    low = df["low"]
     close = df["close"]
 
-    atr = calculate_atr(
-        df,
-        atr_length
+    up_move = (
+        high.diff()
     )
 
-    loss = sensitivity * atr
-
-    trailing_stop = pd.Series(
-        index=df.index,
-        dtype="float64"
+    down_move = (
+        -low.diff()
     )
 
-    first_loss = loss.iloc[0]
-
-    if pd.isna(first_loss):
-        first_loss = 0
-
-    trailing_stop.iloc[0] = (
-        close.iloc[0] -
-        first_loss
+    plus_dm = pd.Series(
+        np.where(
+            (up_move > down_move)
+            &
+            (up_move > 0),
+            up_move,
+            0
+        ),
+        index=df.index
     )
 
-    for i in range(1, len(df)):
+    minus_dm = pd.Series(
+        np.where(
+            (down_move > up_move)
+            &
+            (down_move > 0),
+            down_move,
+            0
+        ),
+        index=df.index
+    )
 
-        previous_stop = (
-            trailing_stop.iloc[i - 1]
-        )
+    previous_close = close.shift(1)
 
-        previous_close = (
-            close.iloc[i - 1]
-        )
+    tr = pd.concat(
+        [
+            high - low,
+            (high - previous_close).abs(),
+            (low - previous_close).abs()
+        ],
+        axis=1
+    ).max(axis=1)
 
-        current_close = close.iloc[i]
+    atr = tr.ewm(
+        alpha=1 / length,
+        adjust=False
+    ).mean()
 
-        current_loss = loss.iloc[i]
+    plus_di = (
+        100 *
+        plus_dm.ewm(
+            alpha=1 / length,
+            adjust=False
+        ).mean()
+        /
+        atr
+    )
 
-        if pd.isna(current_loss):
-            trailing_stop.iloc[i] = (
-                previous_stop
-            )
-            continue
+    minus_di = (
+        100 *
+        minus_dm.ewm(
+            alpha=1 / length,
+            adjust=False
+        ).mean()
+        /
+        atr
+    )
 
-        if (
-            current_close > previous_stop
-            and
-            previous_close > previous_stop
-        ):
-            trailing_stop.iloc[i] = max(
-                previous_stop,
-                current_close - current_loss
-            )
+    denominator = (
+        plus_di +
+        minus_di
+    ).replace(
+        0,
+        np.nan
+    )
 
-        elif (
-            current_close < previous_stop
-            and
-            previous_close < previous_stop
-        ):
-            trailing_stop.iloc[i] = min(
-                previous_stop,
-                current_close + current_loss
-            )
+    dx = (
+        100 *
+        (plus_di - minus_di).abs()
+        /
+        denominator
+    )
 
-        elif current_close > previous_stop:
-            trailing_stop.iloc[i] = (
-                current_close -
-                current_loss
-            )
+    adx = dx.ewm(
+        alpha=1 / length,
+        adjust=False
+    ).mean()
 
-        else:
-            trailing_stop.iloc[i] = (
-                current_close +
-                current_loss
-            )
-
-    bullish = close > trailing_stop
-
-    return bullish
+    return (
+        adx.fillna(0),
+        plus_di.fillna(0),
+        minus_di.fillna(0)
+    )
 
 
 # ============================================================
-# SİNYAL HESAPLAMA
+# VWAP
 # ============================================================
 
-def calculate_signal(df):
+def calculate_vwap(
+    df
+):
 
-    if len(df) < EMA_LENGTH + 10:
-        return None
+    typical_price = (
+        df["high"] +
+        df["low"] +
+        df["close"]
+    ) / 3
+
+    cumulative_volume = (
+        df["volume"].cumsum()
+    )
+
+    cumulative_value = (
+        (
+            typical_price *
+            df["volume"]
+        ).cumsum()
+    )
+
+    return (
+        cumulative_value /
+        cumulative_volume.replace(
+            0,
+            np.nan
+        )
+    )
+
+
+# ============================================================
+# OBV
+# ============================================================
+
+def calculate_obv(
+    df
+):
+
+    direction = np.sign(
+        df["close"].diff()
+    ).fillna(0)
+
+    return (
+        direction *
+        df["volume"]
+    ).cumsum()
+
+
+# ============================================================
+# BOLLINGER
+# ============================================================
+
+def calculate_bollinger(
+    close,
+    length=20
+):
+
+    middle = (
+        close.rolling(length)
+        .mean()
+    )
+
+    std = (
+        close.rolling(length)
+        .std()
+    )
+
+    upper = (
+        middle +
+        2 * std
+    )
+
+    lower = (
+        middle -
+        2 * std
+    )
+
+    return (
+        middle,
+        upper,
+        lower
+    )
+
+
+# ============================================================
+# INDICATOR HESAPLAMA
+# ============================================================
+
+def calculate_indicators(
+    df
+):
 
     df = df.copy()
 
-    df["ema200"] = (
-        df["close"]
-        .ewm(
-            span=EMA_LENGTH,
-            adjust=False
-        )
-        .mean()
+    df["ema20"] = ema(
+        df["close"],
+        20
+    )
+
+    df["ema50"] = ema(
+        df["close"],
+        50
+    )
+
+    df["ema100"] = ema(
+        df["close"],
+        100
+    )
+
+    df["ema200"] = ema(
+        df["close"],
+        200
     )
 
     df["rsi"] = calculate_rsi(
         df["close"],
-        RSI_LENGTH
+        14
+    )
+
+    (
+        df["macd"],
+        df["macd_signal"],
+        df["macd_hist"]
+    ) = calculate_macd(
+        df["close"]
+    )
+
+    df["atr"] = calculate_atr(
+        df,
+        ATR_LENGTH
     )
 
     df["supertrend"] = calculate_supertrend(
-        df,
-        SUPERTREND_ATR_LENGTH,
-        SUPERTREND_FACTOR
+        df
     )
 
-    df["ut_bull"] = calculate_ut_bot(
-        df,
-        UT_ATR_LENGTH,
-        UT_SENSITIVITY
+    (
+        df["adx"],
+        df["plus_di"],
+        df["minus_di"]
+    ) = calculate_adx(
+        df
     )
 
-    # Sadece kapanmış mumlar.
-    closed = df[
-        df["confirm"] == "1"
-    ].copy()
+    df["vwap"] = calculate_vwap(
+        df
+    )
 
-    if len(closed) < 3:
+    df["obv"] = calculate_obv(
+        df
+    )
+
+    (
+        df["bb_mid"],
+        df["bb_upper"],
+        df["bb_lower"]
+    ) = calculate_bollinger(
+        df["close"]
+    )
+
+    df["volume_ma20"] = (
+        df["volume"]
+        .rolling(20)
+        .mean()
+    )
+
+    df["roc10"] = (
+        df["close"]
+        .pct_change(10)
+        * 100
+    )
+
+    return df
+
+
+# ============================================================
+# SCORE
+# ============================================================
+
+def calculate_score(
+    df
+):
+
+    if len(df) < 210:
         return None
 
-    current = closed.iloc[-1]
-    previous = closed.iloc[-2]
+    current = df.iloc[-2]
+    previous = df.iloc[-3]
 
-    current_conditions = [
-        current["rsi"] > 50,
-        current["close"] > current["ema200"],
-        current["supertrend"] == 1,
-        bool(current["ut_bull"])
-    ]
+    score = 0
+    components = {}
 
-    previous_conditions = [
-        previous["rsi"] > 50,
-        previous["close"] > previous["ema200"],
-        previous["supertrend"] == 1,
-        bool(previous["ut_bull"])
-    ]
-
-    current_score = sum(
-        current_conditions
+    close = safe_float(
+        current["close"]
     )
 
-    previous_score = sum(
-        previous_conditions
+    # --------------------------------------------------------
+    # 1. EMA TREND — 20 POINT
+    # --------------------------------------------------------
+
+    ema_score = 0
+
+    if close > current["ema200"]:
+        ema_score += 6
+
+    if current["ema20"] > current["ema50"]:
+        ema_score += 5
+
+    if current["ema50"] > current["ema100"]:
+        ema_score += 4
+
+    if current["ema100"] > current["ema200"]:
+        ema_score += 3
+
+    if current["ema20"] > previous["ema20"]:
+        ema_score += 2
+
+    ema_score = min(
+        ema_score,
+        20
     )
 
-    signal = None
+    score += ema_score
+    components["EMA"] = ema_score
+
+    # --------------------------------------------------------
+    # 2. SUPERTREND — 10
+    # --------------------------------------------------------
+
+    supertrend_score = 10 if (
+        current["supertrend"] == 1
+    ) else 0
+
+    score += supertrend_score
+
+    components["Supertrend"] = (
+        supertrend_score
+    )
+
+    # --------------------------------------------------------
+    # 3. RSI — 10
+    # --------------------------------------------------------
+
+    rsi = safe_float(
+        current["rsi"]
+    )
+
+    if 55 <= rsi < 65:
+        rsi_score = 10
+
+    elif 65 <= rsi < 72:
+        rsi_score = 9
+
+    elif 50 <= rsi < 55:
+        rsi_score = 6
+
+    elif 72 <= rsi < 78:
+        rsi_score = 6
+
+    elif rsi >= 78:
+        rsi_score = 2
+
+    else:
+        rsi_score = 0
+
+    score += rsi_score
+    components["RSI"] = rsi_score
+
+    # --------------------------------------------------------
+    # 4. MACD — 10
+    # --------------------------------------------------------
+
+    macd_score = 0
+
+    if current["macd"] > current["macd_signal"]:
+        macd_score += 5
+
+    if current["macd_hist"] > 0:
+        macd_score += 3
+
+    if current["macd_hist"] > previous["macd_hist"]:
+        macd_score += 2
+
+    score += macd_score
+    components["MACD"] = macd_score
+
+    # --------------------------------------------------------
+    # 5. ADX — 10
+    # --------------------------------------------------------
+
+    adx = safe_float(
+        current["adx"]
+    )
+
+    adx_score = 0
+
+    if adx >= 30:
+        adx_score = 10
+
+    elif adx >= 25:
+        adx_score = 8
+
+    elif adx >= 20:
+        adx_score = 6
+
+    elif adx >= 18:
+        adx_score = 4
+
+    score += adx_score
+    components["ADX"] = adx_score
+
+    # --------------------------------------------------------
+    # 6. VOLUME — 10
+    # --------------------------------------------------------
+
+    volume_ma = safe_float(
+        current["volume_ma20"]
+    )
+
+    volume_ratio = (
+        current["volume"] /
+        volume_ma
+        if volume_ma > 0
+        else 0
+    )
+
+    if volume_ratio >= 2.0:
+        volume_score = 10
+
+    elif volume_ratio >= 1.5:
+        volume_score = 8
+
+    elif volume_ratio >= 1.2:
+        volume_score = 6
+
+    elif volume_ratio >= 1.0:
+        volume_score = 4
+
+    else:
+        volume_score = 1
+
+    score += volume_score
+    components["Volume"] = volume_score
+
+    # --------------------------------------------------------
+    # 7. VWAP — 10
+    # --------------------------------------------------------
+
+    vwap_score = 10 if (
+        close > current["vwap"]
+    ) else 0
+
+    score += vwap_score
+    components["VWAP"] = vwap_score
+
+    # --------------------------------------------------------
+    # 8. OBV — 5
+    # --------------------------------------------------------
+
+    obv_score = 0
+
+    if current["obv"] > previous["obv"]:
+        obv_score += 5
+
+    score += obv_score
+    components["OBV"] = obv_score
+
+    # --------------------------------------------------------
+    # 9. MOMENTUM — 5
+    # --------------------------------------------------------
+
+    roc = safe_float(
+        current["roc10"]
+    )
+
+    if roc > 5:
+        momentum_score = 5
+
+    elif roc > 2:
+        momentum_score = 4
+
+    elif roc > 0:
+        momentum_score = 2
+
+    else:
+        momentum_score = 0
+
+    score += momentum_score
+    components["Momentum"] = momentum_score
+
+    # --------------------------------------------------------
+    # 10. BOLLINGER / VOLATILITY — 5
+    # --------------------------------------------------------
+
+    bb_score = 0
 
     if (
-        current_score == 4
+        close > current["bb_mid"]
         and
-        previous_score < 4
+        close < current["bb_upper"]
     ):
-        signal = "BUY"
+        bb_score = 5
 
-    elif (
-        current_score < 4
-        and
-        previous_score == 4
-    ):
-        signal = "SELL"
+    elif close > current["bb_upper"]:
+        bb_score = 2
+
+    score += bb_score
+    components["Volatility"] = bb_score
 
     return {
-        "signal": signal,
-        "score": current_score,
-        "previous_score": previous_score,
-        "price": float(current["close"]),
-        "rsi": float(current["rsi"]),
-        "ema200": float(current["ema200"]),
+        "score": int(
+            clamp(score, 0, 100)
+        ),
+        "components": components,
+        "price": close,
+        "rsi": rsi,
+        "adx": adx,
+        "volume_ratio": volume_ratio,
+        "atr": safe_float(
+            current["atr"]
+        ),
+        "ema20": safe_float(
+            current["ema20"]
+        ),
+        "ema50": safe_float(
+            current["ema50"]
+        ),
+        "ema100": safe_float(
+            current["ema100"]
+        ),
+        "ema200": safe_float(
+            current["ema200"]
+        ),
         "supertrend": int(
             current["supertrend"]
         ),
-        "ut_bull": bool(
-            current["ut_bull"]
+        "macd_hist": safe_float(
+            current["macd_hist"]
         ),
-        "candle_ts": int(current["ts"])
+        "roc10": roc,
+        "candle_ts": int(
+            current["ts"]
+        )
     }
+
+
+# ============================================================
+# HTF SCORE
+# ============================================================
+
+def calculate_htf_confirmation(
+    df
+):
+
+    if len(df) < 210:
+        return {
+            "confirmed": False,
+            "score": 0
+        }
+
+    df = calculate_indicators(
+        df
+    )
+
+    current = df.iloc[-2]
+
+    close = safe_float(
+        current["close"]
+    )
+
+    htf_score = 0
+
+    if close > current["ema200"]:
+        htf_score += 5
+
+    if current["ema50"] > current["ema200"]:
+        htf_score += 4
+
+    if current["supertrend"] == 1:
+        htf_score += 3
+
+    if current["rsi"] > 50:
+        htf_score += 2
+
+    if current["adx"] >= 18:
+        htf_score += 1
+
+    return {
+        "confirmed": htf_score >= 10,
+        "score": htf_score,
+        "price": close,
+        "rsi": safe_float(
+            current["rsi"]
+        ),
+        "adx": safe_float(
+            current["adx"]
+        )
+    }
+
+
+# ============================================================
+# MARKET REGIME
+# ============================================================
+
+def market_regime(
+    result
+):
+
+    adx = result["adx"]
+
+    if adx >= 25:
+        return "STRONG_TREND"
+
+    if adx >= 18:
+        return "TREND"
+
+    return "RANGE"
+
+
+# ============================================================
+# INITIAL STOP
+# ============================================================
+
+def calculate_initial_stop(
+    df,
+    entry_price,
+    atr
+):
+
+    recent_low = safe_float(
+        df["low"]
+        .iloc[-8:-1]
+        .min()
+    )
+
+    atr_stop = (
+        entry_price -
+        atr *
+        INITIAL_ATR_MULTIPLIER
+    )
+
+    structure_stop = (
+        recent_low * 0.995
+        if recent_low > 0
+        else atr_stop
+    )
+
+    stop = max(
+        atr_stop,
+        structure_stop
+    )
+
+    stop_pct = (
+        entry_price - stop
+    ) / entry_price
+
+    if stop_pct < MIN_INITIAL_STOP_PCT:
+
+        stop = (
+            entry_price *
+            (1 - MIN_INITIAL_STOP_PCT)
+        )
+
+    elif stop_pct > MAX_INITIAL_STOP_PCT:
+
+        stop = (
+            entry_price *
+            (1 - MAX_INITIAL_STOP_PCT)
+        )
+
+    return stop
 
 
 # ============================================================
@@ -632,10 +1346,13 @@ def calculate_signal(df):
 
 def load_paper_trades():
 
-    if not os.path.exists(PAPER_FILE):
+    if not os.path.exists(
+        PAPER_FILE
+    ):
         return []
 
     try:
+
         with open(
             PAPER_FILE,
             "r",
@@ -647,18 +1364,18 @@ def load_paper_trades():
         if isinstance(data, list):
             return data
 
-        return []
-
     except Exception as e:
 
         log(
-            f"Paper trade dosyası okunamadı: {e}"
+            f"Paper dosyası okunamadı: {e}"
         )
 
-        return []
+    return []
 
 
-def save_paper_trades(trades):
+def save_paper_trades(
+    trades
+):
 
     with open(
         PAPER_FILE,
@@ -675,38 +1392,105 @@ def save_paper_trades(trades):
 
 
 # ============================================================
-# AÇIK İŞLEM PNL HESAPLAMA
+# PNL
 # ============================================================
 
-def calculate_open_pnl(trade, current_price):
-
-    entry = safe_float(
-        trade.get("entry_price")
-    )
+def gross_pnl_pct(
+    entry,
+    current
+):
 
     if entry <= 0:
-        return 0.0
+        return 0
 
     return (
         (
-            current_price -
+            current -
             entry
         )
         /
         entry
-    ) * 100
+    )
+
+
+def estimate_net_pnl_tl(
+    entry,
+    exit_price,
+    stake_tl
+):
+
+    if entry <= 0:
+        return 0
+
+    price_change = (
+        exit_price -
+        entry
+    ) / entry
+
+    gross = (
+        stake_tl *
+        price_change
+    )
+
+    fees = (
+        stake_tl *
+        (
+            TAKER_FEE_RATE * 2
+        )
+    )
+
+    slippage = (
+        stake_tl *
+        (
+            SLIPPAGE_RATE * 2
+        )
+    )
+
+    return (
+        gross -
+        fees -
+        slippage
+    )
 
 
 # ============================================================
-# PAPER TRADE AÇ
+# MİLSTONE
 # ============================================================
 
-def open_paper_trade(
+def get_profit_milestone(
+    pnl
+):
+
+    levels = [
+        0.05,
+        0.10,
+        0.15,
+        0.20,
+        0.25,
+        0.30,
+        0.40,
+        0.50
+    ]
+
+    milestone = 0
+
+    for level in levels:
+
+        if pnl >= level:
+            milestone = level
+
+    return milestone
+
+
+# ============================================================
+# OPEN TRADE
+# ============================================================
+
+def open_trade(
     trades,
     symbol,
-    entry_price,
-    signal_result=None,
-    send_notification=True
+    result,
+    htf
 ):
 
     open_trades = [
@@ -716,159 +1500,175 @@ def open_paper_trade(
     ]
 
     if len(open_trades) >= MAX_OPEN_TRADES:
-
-        log(
-            f"Yeni işlem açılamadı: "
-            f"{symbol} | maksimum {MAX_OPEN_TRADES} "
-            f"açık işlem sınırı."
-        )
-
         return False
 
-    for trade in open_trades:
+    if any(
+        t.get("symbol") == symbol
+        for t in open_trades
+    ):
+        return False
 
-        if trade.get("symbol") == symbol:
-            log(
-                f"{symbol} zaten açık işlem. "
-                f"Tekrar açılmadı."
-            )
-            return False
+    entry = result["price"]
 
-    sl = (
-        entry_price *
-        (1 - SL_PERCENT)
+    stop = calculate_initial_stop(
+        CURRENT_DF,
+        entry,
+        result["atr"]
     )
-
-    tp1 = (
-        entry_price *
-        (1 + TP1_PERCENT)
-    )
-
-    tp2 = (
-        entry_price *
-        (1 + TP2_PERCENT)
-    )
-
-    candle_ts = None
-
-    if signal_result:
-        candle_ts = signal_result.get(
-            "candle_ts"
-        )
 
     trade = {
+        "strategy_version":
+            "TREND_RIDER_100",
+
         "symbol": symbol,
         "side": "LONG",
         "status": "OPEN",
 
+        "stake_tl": STAKE_TL,
+
         "entry_time": now_utc(),
+        "entry_price": entry,
 
-        "entry_price": entry_price,
-        "sl": sl,
-        "tp1": tp1,
-        "tp2": tp2,
+        "initial_sl": stop,
+        "current_sl": stop,
 
-        "tp1_hit": False,
+        "atr_at_entry":
+            result["atr"],
 
-        "remaining_pct": 100,
+        "score": result["score"],
+        "last_score": result["score"],
 
-        "realized_pnl_pct": 0,
+        "score_components":
+            result["components"],
 
-        "signal_score": 4,
-        "last_score": 4,
-        "signal_candle_ts": candle_ts,
+        "market_regime":
+            market_regime(result),
+
+        "htf_score":
+            htf.get("score", 0),
+
+        "htf_confirmed":
+            htf.get("confirmed", False),
+
+        "peak_price": entry,
+        "peak_pnl_pct": 0.0,
+
+        "current_pnl_pct": 0.0,
+
+        "trailing_active": False,
+        "trailing_stop_price": None,
+
+        "last_milestone": 0,
+
+        "gross_pnl_tl": 0.0,
+        "fees_tl": 0.0,
+        "slippage_tl": 0.0,
+        "net_pnl_tl": 0.0,
 
         "exit_time": None,
         "exit_price": None,
         "exit_reason": None
     }
 
-    trades.append(trade)
-
-    log(
-        f"PAPER BUY: {symbol} "
-        f"entry={entry_price}"
+    trades.append(
+        trade
     )
 
-    if send_notification:
+    send_telegram(
+        "🚀 YENİ PAPER TRADE 🚀\n\n"
+        f"🪙 {symbol}\n"
+        f"📈 LONG\n"
+        f"💰 Sermaye: {STAKE_TL:.2f} TL\n\n"
+        f"💵 Giriş: {entry:.10g}\n"
+        f"🛑 İlk SL: {stop:.10g}\n\n"
+        f"🧠 Skor: {result['score']}/100\n"
+        f"📊 HTF: "
+        f"{htf.get('score', 0)}/15\n"
+        f"🔥 ADX: {result['adx']:.1f}\n"
+        f"📈 RSI: {result['rsi']:.1f}\n\n"
+        f"🎯 SABİT TP YOK\n"
+        f"📈 Trend devam ettiği sürece taşınacak\n"
+        f"🛡️ Kâr dinamik trailing ile korunacak"
+    )
 
-        send_telegram(
-            f"🟢 SANAL ALIŞ AÇILDI 🟢\n\n"
-            f"🪙 {symbol}\n"
-            f"📈 Yön: LONG\n\n"
-            f"💰 Giriş: {entry_price:.10g}\n"
-            f"🛑 SL: {sl:.10g} (-2%)\n"
-            f"🥇 TP1: {tp1:.10g} (+3%)\n"
-            f"🥈 TP2: {tp2:.10g} (+6%)\n\n"
-            f"📊 4/4 indikatör onayı\n"
-            f"📊 Paper Trade aktif"
-        )
+    log(
+        f"OPEN {symbol} | "
+        f"score={result['score']} | "
+        f"entry={entry}"
+    )
 
     return True
 
 
 # ============================================================
-# PAPER TRADE KAPAT
+# TRAILING STOP HESAPLAMA
 # ============================================================
 
-def close_paper_trade(
+def calculate_trailing_stop(
     trade,
-    exit_price,
-    reason
+    current_price
 ):
 
-    entry_price = safe_float(
+    entry = safe_float(
         trade.get("entry_price")
     )
 
-    if entry_price <= 0:
-        return 0
-
-    pnl_pct = (
-        (
-            exit_price -
-            entry_price
-        )
-        /
-        entry_price
-    ) * 100
-
-    remaining_pct = safe_float(
-        trade.get(
-            "remaining_pct"
-        ),
-        100
+    peak = safe_float(
+        trade.get("peak_price"),
+        entry
     )
 
-    trade["realized_pnl_pct"] = (
-        safe_float(
-            trade.get(
-                "realized_pnl_pct"
-            )
-        )
-        +
-        pnl_pct *
-        (remaining_pct / 100)
+    peak_pnl = gross_pnl_pct(
+        entry,
+        peak
     )
 
-    trade["status"] = "CLOSED"
+    if peak_pnl < TRAIL_START_PROFIT:
+        return None
 
-    trade["remaining_pct"] = 0
+    drawdown = 0
 
-    trade["exit_time"] = now_utc()
+    for level, allowed in TRAIL_LEVELS:
 
-    trade["exit_price"] = exit_price
+        if peak_pnl >= level:
+            drawdown = allowed
 
-    trade["exit_reason"] = reason
+    if drawdown <= 0:
+        return None
 
-    return trade["realized_pnl_pct"]
+    trail_price = (
+        peak *
+        (1 - drawdown)
+    )
+
+    # Kâr kilitleme
+    lock_profit = 0
+
+    for level, locked in PROFIT_LOCK_LEVELS:
+
+        if peak_pnl >= level:
+            lock_profit = locked
+
+    if lock_profit > 0:
+
+        lock_price = (
+            entry *
+            (1 + lock_profit)
+        )
+
+        trail_price = max(
+            trail_price,
+            lock_price
+        )
+
+    return trail_price
 
 
 # ============================================================
-# PAPER TRADELERİ GÜNCELLE
+# TRADE UPDATE
 # ============================================================
 
-def update_paper_trades(
+def update_open_trades(
     trades,
     prices
 ):
@@ -880,145 +1680,176 @@ def update_paper_trades(
         if trade.get("status") != "OPEN":
             continue
 
-        symbol = trade.get("symbol")
+        symbol = trade.get(
+            "symbol"
+        )
 
         if symbol not in prices:
             continue
 
-        current_price = prices[symbol]
+        current = prices[symbol]
 
         entry = safe_float(
             trade.get("entry_price")
         )
 
-        sl = safe_float(
-            trade.get("sl")
+        if entry <= 0:
+            continue
+
+        current_pnl = gross_pnl_pct(
+            entry,
+            current
         )
 
-        tp1 = safe_float(
-            trade.get("tp1")
+        trade["current_pnl_pct"] = (
+            current_pnl
         )
 
-        tp2 = safe_float(
-            trade.get("tp2")
+        # ----------------------------------------------------
+        # PEAK
+        # ----------------------------------------------------
+
+        peak = safe_float(
+            trade.get(
+                "peak_price"
+            ),
+            entry
         )
 
-        # ====================================================
-        # STOP LOSS
-        # ====================================================
+        if current > peak:
 
-        if current_price <= sl:
-
-            pnl = close_paper_trade(
-                trade,
-                current_price,
-                "STOP LOSS"
+            trade["peak_price"] = (
+                current
             )
 
-            log(
-                f"STOP LOSS: {symbol} "
-                f"PnL={pnl:.2f}%"
-            )
+            peak = current
 
-            send_telegram(
-                f"🔴 SANAL SATIŞ — ZARAR 🔴\n\n"
-                f"🪙 {symbol}\n"
-                f"💰 Giriş: {entry:.10g}\n"
-                f"💰 Çıkış: {current_price:.10g}\n"
-                f"🛑 Sebep: STOP LOSS\n\n"
-                f"🔴 GERÇEKLEŞEN PnL: "
-                f"{pnl:+.2f}%"
+            trade["peak_pnl_pct"] = (
+                gross_pnl_pct(
+                    entry,
+                    peak
+                )
             )
 
             changed = True
 
-            continue
+        # ----------------------------------------------------
+        # DİNAMİK TRAILING
+        # ----------------------------------------------------
 
-        # ====================================================
-        # TP1
-        # ====================================================
+        trailing = calculate_trailing_stop(
+            trade,
+            current
+        )
+
+        if trailing:
+
+            old_trailing = safe_float(
+                trade.get(
+                    "trailing_stop_price"
+                ),
+                0
+            )
+
+            # Stop sadece yukarı hareket eder.
+            if trailing > old_trailing:
+
+                trade[
+                    "trailing_stop_price"
+                ] = trailing
+
+                trade[
+                    "current_sl"
+                ] = max(
+                    safe_float(
+                        trade.get(
+                            "current_sl"
+                        )
+                    ),
+                    trailing
+                )
+
+                trade[
+                    "trailing_active"
+                ] = True
+
+                changed = True
+
+        # ----------------------------------------------------
+        # MİLESTONE TELEGRAM
+        # ----------------------------------------------------
+
+        milestone = get_profit_milestone(
+            current_pnl
+        )
+
+        last_milestone = safe_float(
+            trade.get(
+                "last_milestone"
+            )
+        )
 
         if (
-            not trade.get(
-                "tp1_hit",
-                False
-            )
-            and
-            current_price >= tp1
+            milestone > last_milestone
+            and milestone > 0
         ):
 
-            half_pnl = (
-                (
-                    current_price -
-                    entry
-                )
-                /
-                entry
-            ) * 100 * 0.5
+            trade[
+                "last_milestone"
+            ] = milestone
 
-            trade["realized_pnl_pct"] = (
+            peak_pct = (
                 safe_float(
                     trade.get(
-                        "realized_pnl_pct"
+                        "peak_pnl_pct"
                     )
+                ) * 100
+            )
+
+            send_telegram(
+                "🔥 KÂR MİLESTONE 🔥\n\n"
+                f"🪙 {symbol}\n"
+                f"💰 Güncel: "
+                f"{current_pnl * 100:+.2f}%\n"
+                f"🚀 Zirve: "
+                f"{peak_pct:+.2f}%\n"
+                f"💵 100 TL karşılığı: "
+                f"{STAKE_TL * current_pnl:+.2f} TL\n\n"
+                "🛡️ İşlem trend devam ettiği için "
+                "açık tutuluyor."
+            )
+
+            changed = True
+
+        # ----------------------------------------------------
+        # STOP
+        # ----------------------------------------------------
+
+        current_sl = safe_float(
+            trade.get(
+                "current_sl"
+            )
+        )
+
+        if current <= current_sl:
+
+            exit_reason = (
+                "DYNAMIC TRAILING STOP"
+                if trade.get(
+                    "trailing_active"
                 )
-                +
-                half_pnl
+                else
+                "INITIAL STOP LOSS"
             )
 
-            trade["tp1_hit"] = True
-
-            trade["remaining_pct"] = 50
-
-            trade["sl"] = entry
-
-            log(
-                f"TP1: {symbol} "
-                f"partial PnL={half_pnl:.2f}%"
-            )
-
-            send_telegram(
-                f"🟡 SANAL İŞLEM — TP1 🟡\n\n"
-                f"🪙 {symbol}\n"
-                f"💰 Fiyat: {current_price:.10g}\n"
-                f"🥇 TP1 gerçekleşti: +3%\n"
-                f"💵 İlk %50 pozisyon kapandı\n"
-                f"🛡️ SL giriş fiyatına taşındı\n\n"
-                f"📊 Gerçekleşen katkı: "
-                f"{half_pnl:+.2f}%"
-            )
-
-            changed = True
-
-        # ====================================================
-        # TP2
-        # ====================================================
-
-        if (
-            trade.get("status") == "OPEN"
-            and
-            current_price >= tp2
-        ):
-
-            pnl = close_paper_trade(
+            close_trade(
                 trade,
-                current_price,
-                "TAKE PROFIT 2"
+                current,
+                exit_reason
             )
 
-            log(
-                f"TP2: {symbol} "
-                f"PnL={pnl:.2f}%"
-            )
-
-            send_telegram(
-                f"🟢 SANAL SATIŞ — TP2 KÂR 🟢\n\n"
-                f"🪙 {symbol}\n"
-                f"💰 Giriş: {entry:.10g}\n"
-                f"💰 Çıkış: {current_price:.10g}\n"
-                f"🥈 Sebep: TAKE PROFIT 2\n\n"
-                f"🟢 TOPLAM PnL: "
-                f"{pnl:+.2f}%"
+            send_exit_message(
+                trade
             )
 
             changed = True
@@ -1027,230 +1858,167 @@ def update_paper_trades(
 
 
 # ============================================================
-# AÇIK İŞLEMLERİN GÜNCEL SKORUNU KAYDET
+# CLOSE TRADE
 # ============================================================
 
-def update_open_trade_score(
-    trades,
-    symbol,
-    result,
-    current_price
+def close_trade(
+    trade,
+    exit_price,
+    reason
 ):
 
-    changed = False
+    entry = safe_float(
+        trade.get("entry_price")
+    )
 
-    for trade in trades:
+    stake = safe_float(
+        trade.get(
+            "stake_tl"
+        ),
+        STAKE_TL
+    )
 
-        if trade.get("status") != "OPEN":
-            continue
+    gross_pct = gross_pnl_pct(
+        entry,
+        exit_price
+    )
 
-        if trade.get("symbol") != symbol:
-            continue
+    gross_tl = (
+        stake *
+        gross_pct
+    )
 
-        old_score = safe_float(
-            trade.get("last_score"),
-            4
-        )
+    fees = (
+        stake *
+        TAKER_FEE_RATE *
+        2
+    )
 
-        new_score = safe_float(
-            result.get("score"),
-            old_score
-        )
+    slippage = (
+        stake *
+        SLIPPAGE_RATE *
+        2
+    )
 
-        if old_score != new_score:
-            changed = True
+    net = (
+        gross_tl -
+        fees -
+        slippage
+    )
 
-        trade["last_score"] = int(
-            new_score
-        )
+    trade["gross_pnl_tl"] = (
+        gross_tl
+    )
 
-        trade["last_score_time"] = now_utc()
+    trade["fees_tl"] = (
+        fees
+    )
 
-        trade["last_checked_price"] = (
-            current_price
-        )
+    trade["slippage_tl"] = (
+        slippage
+    )
 
-    return changed
+    trade["net_pnl_tl"] = (
+        net
+    )
+
+    trade["exit_price"] = (
+        exit_price
+    )
+
+    trade["exit_time"] = (
+        now_utc()
+    )
+
+    trade["exit_reason"] = (
+        reason
+    )
+
+    trade["status"] = (
+        "CLOSED"
+    )
+
+    trade["current_pnl_pct"] = (
+        gross_pct
+    )
 
 
 # ============================================================
-# ZAYIF İŞLEM ADAYINI BUL
+# EXIT MESSAGE
 # ============================================================
 
-def find_replacement_candidate(
-    trades,
-    prices
+def send_exit_message(
+    trade
 ):
 
-    candidates = []
-
-    for trade in trades:
-
-        if trade.get("status") != "OPEN":
-            continue
-
-        symbol = trade.get("symbol")
-
-        if symbol not in prices:
-            continue
-
-        # TP1 görmüş işlemleri koru.
-        if trade.get("tp1_hit", False):
-            continue
-
-        current_price = prices[symbol]
-
-        current_pnl = calculate_open_pnl(
-            trade,
-            current_price
-        )
-
-        score = safe_float(
-            trade.get("last_score"),
-            4
-        )
-
-        # Çok güçlü işlemleri koru.
-        if score > REPLACEMENT_MIN_SCORE:
-            continue
-
-        # Kârlı ve güçlü sayılabilecek işlemleri
-        # gereksiz yere değiştirme.
-        if (
-            current_pnl > LOW_PROFIT_THRESHOLD
-            and
-            score >= 2
-        ):
-            continue
-
-        weakness = (
-            (4 - score) * 10
-            +
-            max(0, -current_pnl)
-        )
-
-        candidates.append({
-            "trade": trade,
-            "symbol": symbol,
-            "pnl": current_pnl,
-            "score": score,
-            "weakness": weakness
-        })
-
-    if not candidates:
-        return None
-
-    candidates.sort(
-        key=lambda item:
-        item["weakness"],
-        reverse=True
+    symbol = trade.get(
+        "symbol"
     )
 
-    return candidates[0]
-
-
-# ============================================================
-# İŞLEM DEĞİŞTİR
-# ============================================================
-
-def replace_trade(
-    trades,
-    candidate,
-    new_symbol,
-    new_result,
-    prices
-):
-
-    old_trade = candidate["trade"]
-
-    old_symbol = candidate["symbol"]
-
-    old_price = prices.get(
-        old_symbol,
-        safe_float(
-            old_trade.get("entry_price")
+    net = safe_float(
+        trade.get(
+            "net_pnl_tl"
         )
     )
 
-    old_pnl = calculate_open_pnl(
-        old_trade,
-        old_price
-    )
-
-    old_score = safe_float(
-        old_trade.get("last_score"),
-        4
-    )
-
-    new_price = new_result["price"]
-
-    # Eski işlemi kapat.
-    realized = close_paper_trade(
-        old_trade,
-        old_price,
-        "REPLACED BY STRONGER SIGNAL"
-    )
-
-    # Yeni işlemi aç.
-    opened = open_paper_trade(
-        trades,
-        new_symbol,
-        new_price,
-        new_result,
-        send_notification=False
-    )
-
-    if not opened:
-        # Güvenlik: yeni işlem açılamazsa eski işlemi
-        # kapatmış halde bırakmak yerine geri aç.
-        old_trade["status"] = "OPEN"
-        old_trade["remaining_pct"] = (
-            old_trade.get(
-                "remaining_pct",
-                100
-            )
+    gross = safe_float(
+        trade.get(
+            "gross_pnl_tl"
         )
-        old_trade["exit_time"] = None
-        old_trade["exit_price"] = None
-        old_trade["exit_reason"] = None
+    )
 
-        log(
-            f"İşlem değişimi başarısız: "
-            f"{old_symbol} -> {new_symbol}"
+    peak = safe_float(
+        trade.get(
+            "peak_pnl_pct"
         )
+    ) * 100
 
-        return False
+    current = safe_float(
+        trade.get(
+            "current_pnl_pct"
+        )
+    ) * 100
+
+    if net >= 0:
+        emoji = "🟢"
+        result_text = "KÂR"
+    else:
+        emoji = "🔴"
+        result_text = "ZARAR"
 
     send_telegram(
-        f"🔄 İŞLEM DEĞİŞTİRİLDİ 🔄\n\n"
-        f"🔴 Çıkan: {old_symbol}\n"
-        f"📊 Eski skor: {int(old_score)}/4\n"
-        f"💰 Mevcut PnL: {old_pnl:+.2f}%\n\n"
-        f"🟢 Yeni: {new_symbol}\n"
-        f"📊 Yeni skor: 4/4\n"
-        f"💰 Giriş: {new_price:.10g}\n\n"
-        f"🧠 Neden:\n"
-        f"Yeni 4/4 sinyal, mevcut zayıf işlemden "
-        f"daha güçlü bulundu."
+        f"{emoji} PAPER TRADE KAPANDI — "
+        f"{result_text} {emoji}\n\n"
+        f"🪙 {symbol}\n"
+        f"💰 Giriş: "
+        f"{trade.get('entry_price'):.10g}\n"
+        f"💰 Çıkış: "
+        f"{trade.get('exit_price'):.10g}\n\n"
+        f"📈 Anlık PnL: "
+        f"{current:+.2f}%\n"
+        f"🚀 Zirve PnL: "
+        f"{peak:+.2f}%\n\n"
+        f"💵 Brüt: "
+        f"{gross:+.2f} TL\n"
+        f"💳 Komisyon: "
+        f"-{trade.get('fees_tl', 0):.2f} TL\n"
+        f"📉 Slippage: "
+        f"-{trade.get('slippage_tl', 0):.2f} TL\n"
+        f"💰 NET: "
+        f"{net:+.2f} TL\n\n"
+        f"🛑 Sebep: "
+        f"{trade.get('exit_reason')}"
     )
-
-    log(
-        f"TRADE REPLACED: "
-        f"{old_symbol} -> {new_symbol} | "
-        f"old_pnl={realized:.2f}%"
-    )
-
-    return True
 
 
 # ============================================================
-# SELL SİNYALİ İLE PAPER TRADE KAPAT
+# SCORE UPDATE
 # ============================================================
 
-def close_on_sell_signal(
+def update_trade_score(
     trades,
     symbol,
-    price
+    result
 ):
 
     changed = False
@@ -1263,46 +2031,17 @@ def close_on_sell_signal(
         if trade.get("symbol") != symbol:
             continue
 
-        pnl = close_paper_trade(
-            trade,
-            price,
-            "SELL SIGNAL"
+        trade["last_score"] = (
+            result["score"]
         )
 
-        log(
-            f"SELL SIGNAL: {symbol} "
-            f"PnL={pnl:.2f}%"
+        trade["last_score_components"] = (
+            result["components"]
         )
 
-        if pnl > 0:
-
-            send_telegram(
-                f"🟢 SANAL SATIŞ — KÂR 🟢\n\n"
-                f"🪙 {symbol}\n"
-                f"💰 Çıkış: {price:.10g}\n"
-                f"📊 PnL: {pnl:+.2f}%\n"
-                f"ℹ️ Sebep: SELL SIGNAL"
-            )
-
-        elif pnl < 0:
-
-            send_telegram(
-                f"🔴 SANAL SATIŞ — ZARAR 🔴\n\n"
-                f"🪙 {symbol}\n"
-                f"💰 Çıkış: {price:.10g}\n"
-                f"📊 PnL: {pnl:+.2f}%\n"
-                f"ℹ️ Sebep: SELL SIGNAL"
-            )
-
-        else:
-
-            send_telegram(
-                f"🟡 SANAL SATIŞ — BAŞA BAŞ 🟡\n\n"
-                f"🪙 {symbol}\n"
-                f"💰 Çıkış: {price:.10g}\n"
-                f"📊 PnL: {pnl:+.2f}%\n"
-                f"ℹ️ Sebep: SELL SIGNAL"
-            )
+        trade["last_score_time"] = (
+            now_utc()
+        )
 
         changed = True
 
@@ -1310,91 +2049,67 @@ def close_on_sell_signal(
 
 
 # ============================================================
-# BUY SİNYALİ İÇİN TELEGRAM
+# CANDIDATE
 # ============================================================
 
-def send_buy_signal(
-    symbol,
-    result
+def rank_candidate(
+    result,
+    htf
 ):
 
-    price = result["price"]
-
-    sl = (
-        price *
-        (1 - SL_PERCENT)
+    final_score = (
+        result["score"]
     )
 
-    tp1 = (
-        price *
-        (1 + TP1_PERCENT)
+    if htf["confirmed"]:
+        final_score += 5
+
+    else:
+        final_score -= 5
+
+    # Güçlü trend bonusu
+    if result["adx"] >= 25:
+        final_score += 3
+
+    # Aşırı RSI cezası
+    if result["rsi"] >= 80:
+        final_score -= 8
+
+    final_score = int(
+        clamp(
+            final_score,
+            0,
+            100
+        )
     )
 
-    tp2 = (
-        price *
-        (1 + TP2_PERCENT)
-    )
-
-    message = (
-        "🚨 KRİPTO SİNYALİ 🚨\n\n"
-        f"🪙 {symbol}\n"
-        "📈 Yön: LONG\n\n"
-        f"💰 Giriş: {price:.10g}\n"
-        f"🛑 SL: {sl:.10g}\n"
-        f"🎯 TP1: {tp1:.10g}\n"
-        f"🎯 TP2: {tp2:.10g}\n\n"
-        f"📊 RSI: {result['rsi']:.2f}\n"
-        f"📈 EMA200: {result['ema200']:.10g}\n"
-        "✅ 4/4 indikatör onaylandı\n\n"
-        "⏱️ Timeframe: 15 dakika"
-    )
-
-    send_telegram(message)
+    return final_score
 
 
 # ============================================================
-# SELL BİLDİRİMİ
+# MAIN
 # ============================================================
 
-def send_sell_signal(
-    symbol,
-    result
-):
+CURRENT_DF = None
 
-    message = (
-        "🔻 KRİPTO SAT SİNYALİ 🔻\n\n"
-        f"🪙 {symbol}\n"
-        "📉 Yön: SAT\n\n"
-        f"💰 Fiyat: {result['price']:.10g}\n"
-        f"📊 RSI: {result['rsi']:.2f}\n"
-        f"📈 EMA200: {result['ema200']:.10g}\n"
-        f"📊 Skor: {result['score']}/4\n\n"
-        "⚠️ 4/4 indikatör uyumu bozuldu\n"
-        "⏱️ Timeframe: 15 dakika"
-    )
-
-    send_telegram(message)
-
-
-# ============================================================
-# ANA TARAMA
-# ============================================================
 
 def main():
 
-    log("=" * 60)
-    log("OKX CRYPTO SCANNER BAŞLADI")
-    log("=" * 60)
+    global CURRENT_DF
+
+    log("=" * 70)
+    log("🚀 TREND RIDER CRYPTO SCANNER")
+    log("=" * 70)
 
     trades = load_paper_trades()
 
     log(
-        f"Paper trade kayıtları: "
+        f"Paper kayıtları: "
         f"{len(trades)}"
     )
 
     # --------------------------------------------------------
-    # TICKER VERİLERİ
+    # TICKERS
     # --------------------------------------------------------
 
     try:
@@ -1404,22 +2119,23 @@ def main():
     except Exception as e:
 
         log(
-            f"Ticker verileri alınamadı: {e}"
+            f"Ticker hatası: {e}"
         )
 
         return
 
     prices = {
         symbol: data["last"]
-        for symbol, data in tickers.items()
+        for symbol, data
+        in tickers.items()
         if data["last"] > 0
     }
 
     # --------------------------------------------------------
-    # AÇIK İŞLEMLERİ GÜNCELLE
+    # AÇIK İŞLEMLERİ ÖNCE YÖNET
     # --------------------------------------------------------
 
-    if update_paper_trades(
+    if update_open_trades(
         trades,
         prices
     ):
@@ -1429,7 +2145,7 @@ def main():
         )
 
     # --------------------------------------------------------
-    # SEMBOLLERİ AL
+    # SYMBOLS
     # --------------------------------------------------------
 
     try:
@@ -1439,24 +2155,20 @@ def main():
     except Exception as e:
 
         log(
-            f"OKX sembolleri alınamadı: {e}"
+            f"Symbol hatası: {e}"
         )
 
         return
 
-    # --------------------------------------------------------
-    # HACME GÖRE SIRALA
-    # --------------------------------------------------------
-
     symbols = [
-        symbol
-        for symbol in symbols
-        if symbol in tickers
+        s
+        for s in symbols
+        if s in tickers
     ]
 
     symbols.sort(
-        key=lambda symbol:
-        tickers[symbol]["volCcy24h"],
+        key=lambda s:
+        tickers[s]["volCcy24h"],
         reverse=True
     )
 
@@ -1465,306 +2177,341 @@ def main():
     ]
 
     log(
-        f"Taranacak kripto coin sayısı: "
-        f"{len(symbols)}"
+        f"Taranıyor: "
+        f"{len(symbols)} coin"
     )
 
-    buy_signals = []
-    sell_signals = []
+    # --------------------------------------------------------
+    # 15M TARAMA
+    # --------------------------------------------------------
 
-    error_count = 0
+    candidates = []
 
-    # ========================================================
-    # 1. AŞAMA: TÜM COİNLERİ TARA
-    # ========================================================
+    errors = 0
 
     for index, symbol in enumerate(
         symbols,
-        start=1
+        1
     ):
 
         try:
 
             log(
                 f"[{index}/{len(symbols)}] "
-                f"Taranıyor: {symbol}"
+                f"{symbol}"
             )
 
             df = get_candles(
-                symbol
+                symbol,
+                MAIN_BAR,
+                MAIN_CANDLE_LIMIT
             )
 
             if df.empty:
                 continue
 
-            result = calculate_signal(
+            closed = df[
+                df["confirm"] == "1"
+            ].copy()
+
+            if len(closed) < 210:
+                continue
+
+            df = calculate_indicators(
+                closed
+            )
+
+            result = calculate_score(
                 df
             )
 
             if result is None:
                 continue
 
-            current_price = prices.get(
-                symbol,
-                result["price"]
-            )
-
-            # Açık işlem varsa mevcut skorunu güncelle.
-            update_open_trade_score(
+            update_trade_score(
                 trades,
-                symbol,
-                result,
-                current_price
-            )
-
-            signal = result["signal"]
-
-            if signal == "BUY":
-
-                buy_signals.append({
-                    "symbol": symbol,
-                    "result": result
-                })
-
-                log(
-                    f"🚨 BUY ADAYI: {symbol} "
-                    f"price={result['price']:.10g} "
-                    f"RSI={result['rsi']:.2f} "
-                    f"score={result['score']}/4"
-                )
-
-            elif signal == "SELL":
-
-                sell_signals.append({
-                    "symbol": symbol,
-                    "result": result
-                })
-
-                log(
-                    f"🔻 SELL: {symbol} "
-                    f"price={result['price']:.10g}"
-                )
-
-            time.sleep(0.15)
-
-        except Exception as e:
-
-            error_count += 1
-
-            log(
-                f"❌ {symbol} hata: {e}"
-            )
-
-    # ========================================================
-    # 2. AŞAMA: SELL SİNYALLERİ
-    # ========================================================
-
-    sell_count = 0
-
-    for item in sell_signals:
-
-        symbol = item["symbol"]
-        result = item["result"]
-
-        has_open_trade = any(
-            trade.get("status") == "OPEN"
-            and
-            trade.get("symbol") == symbol
-            for trade in trades
-        )
-
-        # Açık işlem yoksa gereksiz SELL Telegram'ı gönderme.
-        if not has_open_trade:
-            log(
-                f"SELL atlandı: {symbol} | "
-                f"açık paper trade yok."
-            )
-            continue
-
-        sell_count += 1
-
-        send_sell_signal(
-            symbol,
-            result
-        )
-
-        if close_on_sell_signal(
-            trades,
-            symbol,
-            result["price"]
-        ):
-
-            save_paper_trades(
-                trades
-            )
-
-    # ========================================================
-    # 3. AŞAMA: BUY SİNYALLERİ
-    # ========================================================
-
-    buy_count = 0
-    replacement_count = 0
-
-    for item in buy_signals:
-
-        symbol = item["symbol"]
-        result = item["result"]
-
-        # ----------------------------------------------------
-        # Aynı coin zaten açıksa hiçbir bildirim gönderme.
-        # ----------------------------------------------------
-
-        already_open = any(
-            trade.get("status") == "OPEN"
-            and
-            trade.get("symbol") == symbol
-            for trade in trades
-        )
-
-        if already_open:
-
-            log(
-                f"BUY atlandı: {symbol} | "
-                f"zaten açık işlem."
-            )
-
-            continue
-
-        # ----------------------------------------------------
-        # Mevcut açık işlem sayısı
-        # ----------------------------------------------------
-
-        open_count = sum(
-            1
-            for trade in trades
-            if trade.get("status") == "OPEN"
-        )
-
-        # ----------------------------------------------------
-        # Yer varsa direkt aç.
-        # ----------------------------------------------------
-
-        if open_count < MAX_OPEN_TRADES:
-
-            buy_count += 1
-
-            send_buy_signal(
                 symbol,
                 result
             )
 
-            opened = open_paper_trade(
-                trades,
-                symbol,
-                result["price"],
-                result,
-                send_notification=True
+            # Ön filtre
+            if result["score"] < 65:
+                continue
+
+            if result["adx"] < MIN_ADX_FOR_TREND:
+                continue
+
+            CURRENT_DF = df
+
+            candidates.append({
+                "symbol": symbol,
+                "result": result,
+                "df": df
+            })
+
+            time.sleep(
+                0.10
             )
 
-            if opened:
+        except Exception as e:
 
-                save_paper_trades(
-                    trades
-                )
-
-            continue
-
-        # ----------------------------------------------------
-        # 10 işlem doluysa değişim adayı ara.
-        # ----------------------------------------------------
-
-        candidate = find_replacement_candidate(
-            trades,
-            prices
-        )
-
-        if candidate is None:
+            errors += 1
 
             log(
-                f"BUY atlandı: {symbol} | "
-                f"{MAX_OPEN_TRADES} açık işlem var "
-                f"ve değiştirilebilecek zayıf işlem yok."
+                f"{symbol} hata: {e}"
             )
 
+    # --------------------------------------------------------
+    # EN İYİLERİ SEÇ
+    # --------------------------------------------------------
+
+    candidates.sort(
+        key=lambda x:
+        x["result"]["score"],
+        reverse=True
+    )
+
+    candidates = candidates[
+        :MAX_FINAL_CANDIDATES
+    ]
+
+    log(
+        f"HTF kontrolü yapılacak aday: "
+        f"{len(candidates)}"
+    )
+
+    # --------------------------------------------------------
+    # 1H ONAY
+    # --------------------------------------------------------
+
+    final_candidates = []
+
+    for candidate in candidates:
+
+        symbol = candidate[
+            "symbol"
+        ]
+
+        result = candidate[
+            "result"
+        ]
+
+        try:
+
+            htf_df = get_candles(
+                symbol,
+                HTF_BAR,
+                HTF_CANDLE_LIMIT
+            )
+
+            if htf_df.empty:
+                continue
+
+            htf_closed = htf_df[
+                htf_df["confirm"] == "1"
+            ].copy()
+
+            htf = calculate_htf_confirmation(
+                htf_closed
+            )
+
+            final_score = rank_candidate(
+                result,
+                htf
+            )
+
+            candidate[
+                "htf"
+            ] = htf
+
+            candidate[
+                "final_score"
+            ] = final_score
+
+            final_candidates.append(
+                candidate
+            )
+
+            log(
+                f"🎯 {symbol} "
+                f"15m={result['score']}/100 "
+                f"HTF={htf['score']}/15 "
+                f"FINAL={final_score}/100"
+            )
+
+            time.sleep(
+                0.15
+            )
+
+        except Exception as e:
+
+            log(
+                f"HTF {symbol} hata: {e}"
+            )
+
+    # --------------------------------------------------------
+    # BUY
+    # --------------------------------------------------------
+
+    final_candidates.sort(
+        key=lambda x:
+        x["final_score"],
+        reverse=True
+    )
+
+    buy_count = 0
+
+    for candidate in final_candidates:
+
+        symbol = candidate[
+            "symbol"
+        ]
+
+        result = candidate[
+            "result"
+        ]
+
+        htf = candidate[
+            "htf"
+        ]
+
+        final_score = candidate[
+            "final_score"
+        ]
+
+        if final_score < ENTRY_SCORE_MIN:
             continue
 
-        log(
-            f"🔄 DEĞİŞİM ADAYI: "
-            f"{candidate['symbol']} "
-            f"PnL={candidate['pnl']:+.2f}% "
-            f"score={int(candidate['score'])}/4 "
-            f"-> {symbol} 4/4"
+        if result["rsi"] >= 80:
+            continue
+
+        already_open = any(
+            t.get("status") == "OPEN"
+            and
+            t.get("symbol") == symbol
+            for t in trades
         )
 
-        replaced = replace_trade(
+        if already_open:
+            continue
+
+        open_count = sum(
+            1
+            for t in trades
+            if t.get("status") == "OPEN"
+        )
+
+        if open_count >= MAX_OPEN_TRADES:
+            break
+
+        CURRENT_DF = candidate[
+            "df"
+        ]
+
+        result["score"] = (
+            final_score
+        )
+
+        if open_trade(
             trades,
-            candidate,
             symbol,
             result,
-            prices
-        )
+            htf
+        ):
 
-        if replaced:
-
-            replacement_count += 1
             buy_count += 1
 
             save_paper_trades(
                 trades
             )
 
-    # ========================================================
-    # SON KAYIT
-    # ========================================================
+    # --------------------------------------------------------
+    # SAVE
+    # --------------------------------------------------------
 
     save_paper_trades(
         trades
     )
 
+    # --------------------------------------------------------
+    # İSTATİSTİK
+    # --------------------------------------------------------
+
     open_count = sum(
         1
-        for trade in trades
-        if trade.get("status") == "OPEN"
+        for t in trades
+        if t.get("status") == "OPEN"
     )
 
-    closed_count = sum(
-        1
-        for trade in trades
-        if trade.get("status") == "CLOSED"
-    )
+    closed = [
+        t
+        for t in trades
+        if t.get("status") == "CLOSED"
+    ]
 
-    total_pnl = sum(
+    total_net = sum(
         safe_float(
-            trade.get(
-                "realized_pnl_pct"
-            )
+            t.get("net_pnl_tl")
         )
-        for trade in trades
-        if trade.get("status") == "CLOSED"
+        for t in closed
     )
 
-    # ========================================================
-    # ÖZET
-    # ========================================================
+    wins = [
+        t
+        for t in closed
+        if safe_float(
+            t.get("net_pnl_tl")
+        ) > 0
+    ]
 
-    log("=" * 60)
-    log("TARAMA TAMAMLANDI")
-    log(f"BUY işlemi: {buy_count}")
-    log(f"SELL işlemi: {sell_count}")
-    log(f"İşlem değişimi: {replacement_count}")
-    log(f"Hata: {error_count}")
-    log(f"Açık paper trade: {open_count}")
-    log(f"Kapanmış paper trade: {closed_count}")
+    losses = [
+        t
+        for t in closed
+        if safe_float(
+            t.get("net_pnl_tl")
+        ) < 0
+    ]
+
+    win_rate = (
+        len(wins) /
+        len(closed) *
+        100
+        if closed
+        else 0
+    )
+
+    log("=" * 70)
+    log("✅ TARAMA TAMAMLANDI")
+    log("=" * 70)
     log(
-        f"Toplam gerçekleşmiş PnL: "
-        f"{total_pnl:.2f}%"
+        f"Yeni işlem: {buy_count}"
     )
-    log("=" * 60)
+    log(
+        f"Açık işlem: {open_count}"
+    )
+    log(
+        f"Kapanmış işlem: "
+        f"{len(closed)}"
+    )
+    log(
+        f"Kazanılan: {len(wins)}"
+    )
+    log(
+        f"Kaybedilen: {len(losses)}"
+    )
+    log(
+        f"Win rate: "
+        f"{win_rate:.2f}%"
+    )
+    log(
+        f"NET Paper PnL: "
+        f"{total_net:+.2f} TL"
+    )
+    log(
+        f"Hatalar: {errors}"
+    )
+    log("=" * 70)
 
-
-# ============================================================
-# PROGRAMI BAŞLAT
-# ============================================================
 
 if __name__ == "__main__":
     main()
