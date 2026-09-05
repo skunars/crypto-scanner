@@ -2860,23 +2860,23 @@
   {
     "symbol": "GRVT-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T14:12:16.378248+00:00",
     "entry_price": 0.16295,
     "sl": 0.159691,
     "tp1": 0.16783850000000003,
     "tp2": 0.17272700000000002,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.024547407180124114,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 2,
     "signal_candle_ts": 1788615900000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T17:39:00.610599+00:00",
-    "last_checked_price": 0.16307
+    "exit_time": "2026-09-05T17:52:19.724670+00:00",
+    "exit_price": 0.16291,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T17:52:13.611389+00:00",
+    "last_checked_price": 0.16314
   },
   {
     "symbol": "RE-USDT",
@@ -2980,8 +2980,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:38:47.120556+00:00",
-    "last_checked_price": 132.93
+    "last_score_time": "2026-09-05T17:52:00.705827+00:00",
+    "last_checked_price": 132.64
   },
   {
     "symbol": "JUP-USDT",
@@ -3043,8 +3043,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:38:44.146992+00:00",
-    "last_checked_price": 256.2
+    "last_score_time": "2026-09-05T17:51:57.983080+00:00",
+    "last_checked_price": 258.0
   },
   {
     "symbol": "JTO-USDT",
@@ -3106,8 +3106,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:38:34.704221+00:00",
-    "last_checked_price": 103.73
+    "last_score_time": "2026-09-05T17:51:49.099884+00:00",
+    "last_checked_price": 103.87
   },
   {
     "symbol": "SUI-USDT",
@@ -3145,6 +3145,46 @@
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788628500000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T17:51:53.361307+00:00",
+    "last_checked_price": 4.7856
+  },
+  {
+    "symbol": "APT-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T17:52:20.635540+00:00",
+    "entry_price": 0.6012,
+    "sl": 0.5891759999999999,
+    "tp1": 0.619236,
+    "tp2": 0.637272,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788629400000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null
+  },
+  {
+    "symbol": "CRV-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T17:52:21.536954+00:00",
+    "entry_price": 0.3648,
+    "sl": 0.357504,
+    "tp1": 0.375744,
+    "tp2": 0.38668800000000003,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788629400000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
