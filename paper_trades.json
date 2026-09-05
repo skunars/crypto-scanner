@@ -2121,7 +2121,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T08:43:45.488912+00:00",
+    "last_score_time": "2026-09-05T08:55:37.883997+00:00",
     "last_checked_price": 1.423
   },
   {
@@ -2184,8 +2184,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T08:43:37.380027+00:00",
-    "last_checked_price": 84.515
+    "last_score_time": "2026-09-05T08:55:30.016687+00:00",
+    "last_checked_price": 84.672
   },
   {
     "symbol": "EDGE-USDT",
@@ -2247,8 +2247,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T08:43:49.589665+00:00",
-    "last_checked_price": 0.02347
+    "last_score_time": "2026-09-05T08:55:41.851168+00:00",
+    "last_checked_price": 0.02338
   },
   {
     "symbol": "ASTER-USDT",
@@ -2268,8 +2268,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T08:43:50.702647+00:00",
-    "last_checked_price": 0.7553
+    "last_score_time": "2026-09-05T08:55:42.919320+00:00",
+    "last_checked_price": 0.7542
   },
   {
     "symbol": "CP-USDT",
@@ -2329,8 +2329,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T08:43:47.732605+00:00",
-    "last_checked_price": 235.5
+    "last_score_time": "2026-09-05T08:55:40.060803+00:00",
+    "last_checked_price": 236.1
   },
   {
     "symbol": "TRX-USDT",
@@ -2349,7 +2349,9 @@
     "signal_candle_ts": 1788596100000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T08:55:37.527972+00:00",
+    "last_checked_price": 0.33282
   },
   {
     "symbol": "DATA-USDT",
@@ -2368,6 +2370,8 @@
     "signal_candle_ts": 1788596100000,
     "exit_time": null,
     "exit_price": null,
-    "exit_reason": null
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T08:55:50.564547+00:00",
+    "last_checked_price": 0.1911
   }
 ]
