@@ -11,7 +11,7 @@
     "current_sl": 0.10926714,
     "atr_at_entry": 0.0010667304938558272,
     "score": 89,
-    "last_score": 79,
+    "last_score": 80,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -29,7 +29,7 @@
     "htf_confirmed": true,
     "peak_price": 0.11127,
     "peak_pnl_pct": 0.07196531791907505,
-    "current_pnl_pct": 0.06734104046242771,
+    "current_pnl_pct": 0.0578034682080924,
     "trailing_active": true,
     "trailing_stop_price": 0.10926714,
     "last_milestone": 0.05,
@@ -49,10 +49,10 @@
       "Volume": 1,
       "VWAP": 10,
       "OBV": 5,
-      "Momentum": 4,
+      "Momentum": 5,
       "Volatility": 5
     },
-    "last_score_time": "2026-09-05T23:11:51.946532+00:00"
+    "last_score_time": "2026-09-05T23:25:33.163973+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -66,7 +66,7 @@
     "current_sl": 0.3668916624278882,
     "atr_at_entry": 0.003549244350959914,
     "score": 89,
-    "last_score": 80,
+    "last_score": 76,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -84,7 +84,7 @@
     "htf_confirmed": true,
     "peak_price": 0.3834,
     "peak_pnl_pct": 0.02321857485988802,
-    "current_pnl_pct": 0.014411529223378747,
+    "current_pnl_pct": 0.011475847344542371,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -98,22 +98,22 @@
     "last_score_components": {
       "EMA": 20,
       "Supertrend": 10,
-      "RSI": 9,
+      "RSI": 10,
       "MACD": 8,
       "ADX": 10,
       "Volume": 1,
       "VWAP": 10,
-      "OBV": 5,
+      "OBV": 0,
       "Momentum": 2,
       "Volatility": 5
     },
-    "last_score_time": "2026-09-05T23:11:55.166350+00:00"
+    "last_score_time": "2026-09-05T23:25:35.810348+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
     "symbol": "LDO-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "stake_tl": 100.0,
     "entry_time": "2026-09-05T21:22:27.253350+00:00",
     "entry_price": 0.3913,
@@ -139,17 +139,17 @@
     "htf_confirmed": true,
     "peak_price": 0.4102,
     "peak_pnl_pct": 0.04830053667262977,
-    "current_pnl_pct": 0.03347814975721953,
+    "current_pnl_pct": 0.026066956299514547,
     "trailing_active": true,
     "trailing_stop_price": 0.401996,
     "last_milestone": 0,
-    "gross_pnl_tl": 0.0,
-    "fees_tl": 0.0,
-    "slippage_tl": 0.0,
-    "net_pnl_tl": 0.0,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
+    "gross_pnl_tl": 2.6066956299514548,
+    "fees_tl": 0.2,
+    "slippage_tl": 0.1,
+    "net_pnl_tl": 2.3066956299514545,
+    "exit_time": "2026-09-05T23:25:22.509948+00:00",
+    "exit_price": 0.4015,
+    "exit_reason": "DYNAMIC TRAILING STOP",
     "last_score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -176,7 +176,7 @@
     "current_sl": 0.001443959264936629,
     "atr_at_entry": 9.563970483350464e-06,
     "score": 89,
-    "last_score": 81,
+    "last_score": 83,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -209,7 +209,7 @@
       "EMA": 20,
       "Supertrend": 10,
       "RSI": 10,
-      "MACD": 8,
+      "MACD": 10,
       "ADX": 10,
       "Volume": 1,
       "VWAP": 10,
@@ -217,7 +217,7 @@
       "Momentum": 2,
       "Volatility": 5
     },
-    "last_score_time": "2026-09-05T23:12:04.450950+00:00"
+    "last_score_time": "2026-09-05T23:25:43.747381+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -286,7 +286,7 @@
     "current_sl": 0.010022424703270577,
     "atr_at_entry": 6.753422578610129e-05,
     "score": 88,
-    "last_score": 83,
+    "last_score": 88,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -304,7 +304,7 @@
     "htf_confirmed": true,
     "peak_price": 0.010248,
     "peak_pnl_pct": 0.007570543702684169,
-    "current_pnl_pct": -0.00019663749877104174,
+    "current_pnl_pct": -0.003441156228492804,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -321,13 +321,13 @@
       "RSI": 10,
       "MACD": 8,
       "ADX": 10,
-      "Volume": 8,
+      "Volume": 10,
       "VWAP": 10,
-      "OBV": 0,
-      "Momentum": 2,
+      "OBV": 5,
+      "Momentum": 0,
       "Volatility": 5
     },
-    "last_score_time": "2026-09-05T23:12:02.300237+00:00"
+    "last_score_time": "2026-09-05T23:25:41.986672+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -341,7 +341,7 @@
     "current_sl": 6.98092,
     "atr_at_entry": 0.10349266633413856,
     "score": 87,
-    "last_score": 71,
+    "last_score": 61,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -359,7 +359,7 @@
     "htf_confirmed": true,
     "peak_price": 7.185,
     "peak_pnl_pct": 0.008421052631578892,
-    "current_pnl_pct": -0.007157894736842127,
+    "current_pnl_pct": -0.009263157894736819,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -378,11 +378,11 @@
       "ADX": 10,
       "Volume": 1,
       "VWAP": 10,
-      "OBV": 5,
+      "OBV": 0,
       "Momentum": 0,
-      "Volatility": 5
+      "Volatility": 0
     },
-    "last_score_time": "2026-09-05T23:11:41.052335+00:00"
+    "last_score_time": "2026-09-05T23:25:24.803116+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -396,7 +396,7 @@
     "current_sl": 4.1507141039792765,
     "atr_at_entry": 0.025129952736692603,
     "score": 84,
-    "last_score": 47,
+    "last_score": 52,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -414,7 +414,7 @@
     "htf_confirmed": true,
     "peak_price": 4.22,
     "peak_pnl_pct": 0.0033285782215880517,
-    "current_pnl_pct": -0.0049928673323825,
+    "current_pnl_pct": -0.005468378506895048,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -431,13 +431,13 @@
       "RSI": 0,
       "MACD": 0,
       "ADX": 8,
-      "Volume": 1,
+      "Volume": 6,
       "VWAP": 10,
       "OBV": 0,
       "Momentum": 0,
       "Volatility": 0
     },
-    "last_score_time": "2026-09-05T23:11:53.608163+00:00"
+    "last_score_time": "2026-09-05T23:25:34.745524+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -451,7 +451,7 @@
     "current_sl": 0.37779,
     "atr_at_entry": 0.002230260147798846,
     "score": 84,
-    "last_score": 80,
+    "last_score": 82,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -469,7 +469,7 @@
     "htf_confirmed": true,
     "peak_price": 0.3855,
     "peak_pnl_pct": 0.03434397638851633,
-    "current_pnl_pct": 0.03353903944191042,
+    "current_pnl_pct": 0.023074859136034336,
     "trailing_active": true,
     "trailing_stop_price": 0.37779,
     "last_milestone": 0,
@@ -484,15 +484,15 @@
       "EMA": 20,
       "Supertrend": 10,
       "RSI": 6,
-      "MACD": 10,
+      "MACD": 8,
       "ADX": 10,
-      "Volume": 8,
+      "Volume": 4,
       "VWAP": 10,
-      "OBV": 0,
+      "OBV": 5,
       "Momentum": 4,
-      "Volatility": 2
+      "Volatility": 5
     },
-    "last_score_time": "2026-09-05T23:11:56.401149+00:00"
+    "last_score_time": "2026-09-05T23:25:37.067855+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -524,7 +524,7 @@
     "htf_confirmed": true,
     "peak_price": 7.833,
     "peak_pnl_pct": 0.003587443946188401,
-    "current_pnl_pct": -0.004484304932735444,
+    "current_pnl_pct": -0.006021780909673249,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -541,13 +541,13 @@
       "RSI": 6,
       "MACD": 0,
       "ADX": 10,
-      "Volume": 6,
+      "Volume": 1,
       "VWAP": 10,
-      "OBV": 0,
+      "OBV": 5,
       "Momentum": 0,
       "Volatility": 0
     },
-    "last_score_time": "2026-09-05T23:11:58.524637+00:00"
+    "last_score_time": "2026-09-05T23:25:38.516931+00:00"
   },
   {
     "strategy_version": "TREND_RIDER_100",
@@ -561,7 +561,7 @@
     "current_sl": 54.49667227039759,
     "atr_at_entry": 0.3151489680010937,
     "score": 95,
-    "last_score": 95,
+    "last_score": 76,
     "score_components": {
       "EMA": 20,
       "Supertrend": 10,
@@ -578,6 +578,61 @@
     "htf_score": 15,
     "htf_confirmed": true,
     "peak_price": 55.19,
+    "peak_pnl_pct": 0.0,
+    "current_pnl_pct": -0.00616053632904505,
+    "trailing_active": false,
+    "trailing_stop_price": null,
+    "last_milestone": 0,
+    "gross_pnl_tl": 0.0,
+    "fees_tl": 0.0,
+    "slippage_tl": 0.0,
+    "net_pnl_tl": 0.0,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_components": {
+      "EMA": 20,
+      "Supertrend": 10,
+      "RSI": 10,
+      "MACD": 10,
+      "ADX": 8,
+      "Volume": 1,
+      "VWAP": 10,
+      "OBV": 0,
+      "Momentum": 2,
+      "Volatility": 5
+    },
+    "last_score_time": "2026-09-05T23:25:26.893482+00:00"
+  },
+  {
+    "strategy_version": "TREND_RIDER_100",
+    "symbol": "ENA-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "stake_tl": 100.0,
+    "entry_time": "2026-09-05T23:25:51.706586+00:00",
+    "entry_price": 0.16991,
+    "initial_sl": 0.16617495,
+    "current_sl": 0.16617495,
+    "atr_at_entry": 0.0021620143611742614,
+    "score": 91,
+    "last_score": 91,
+    "score_components": {
+      "EMA": 20,
+      "Supertrend": 10,
+      "RSI": 10,
+      "MACD": 8,
+      "ADX": 10,
+      "Volume": 6,
+      "VWAP": 10,
+      "OBV": 0,
+      "Momentum": 4,
+      "Volatility": 5
+    },
+    "market_regime": "STRONG_TREND",
+    "htf_score": 14,
+    "htf_confirmed": true,
+    "peak_price": 0.16991,
     "peak_pnl_pct": 0.0,
     "current_pnl_pct": 0.0,
     "trailing_active": false,
