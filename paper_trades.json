@@ -2314,23 +2314,23 @@
   {
     "symbol": "TAO-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T08:29:49.989343+00:00",
     "entry_price": 236.2,
     "sl": 231.47599999999997,
     "tp1": 243.286,
     "tp2": 250.372,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.42337002540220153,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788595200000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T12:55:52.120337+00:00",
-    "last_checked_price": 237.7
+    "exit_time": "2026-09-05T13:13:32.914288+00:00",
+    "exit_price": 237.2,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T13:13:10.718467+00:00",
+    "last_checked_price": 237.5
   },
   {
     "symbol": "TRX-USDT",
@@ -2581,8 +2581,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T12:55:51.757358+00:00",
-    "last_checked_price": 1.429
+    "last_score_time": "2026-09-05T13:13:11.160598+00:00",
+    "last_checked_price": 1.427
   },
   {
     "symbol": "TRUMP-USDT",
@@ -2623,8 +2623,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T12:55:43.442000+00:00",
-    "last_checked_price": 85.232
+    "last_score_time": "2026-09-05T13:13:00.604410+00:00",
+    "last_checked_price": 85.129
   },
   {
     "symbol": "FIL-USDT",
@@ -2644,8 +2644,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T12:55:50.323209+00:00",
-    "last_checked_price": 0.7868
+    "last_score_time": "2026-09-05T13:13:08.184613+00:00",
+    "last_checked_price": 0.7934
   },
   {
     "symbol": "SUI-USDT",
@@ -2665,8 +2665,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T12:55:43.800493+00:00",
-    "last_checked_price": 0.8027
+    "last_score_time": "2026-09-05T13:13:01.024329+00:00",
+    "last_checked_price": 0.7988
   },
   {
     "symbol": "LIT-USDT",
@@ -2707,8 +2707,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T12:55:48.515464+00:00",
-    "last_checked_price": 0.2165
+    "last_score_time": "2026-09-05T13:13:06.450702+00:00",
+    "last_checked_price": 0.2162
   },
   {
     "symbol": "BTC-USDT",
@@ -2725,6 +2725,27 @@
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788611400000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T13:12:58.479131+00:00",
+    "last_checked_price": 79671.0
+  },
+  {
+    "symbol": "ARB-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T13:13:33.573001+00:00",
+    "entry_price": 0.1346,
+    "sl": 0.131908,
+    "tp1": 0.138638,
+    "tp2": 0.142676,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788612300000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
