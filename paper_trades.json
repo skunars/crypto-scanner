@@ -1701,7 +1701,7 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T03:28:52.156453+00:00",
+    "last_score_time": "2026-09-05T03:43:22.475787+00:00",
     "last_checked_price": 0.7654
   },
   {
@@ -1764,8 +1764,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T03:29:09.794514+00:00",
-    "last_checked_price": 0.10053
+    "last_score_time": "2026-09-05T03:43:39.406519+00:00",
+    "last_checked_price": 0.1003
   },
   {
     "symbol": "UNI-USDT",
@@ -1806,8 +1806,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T03:28:56.795528+00:00",
-    "last_checked_price": 11.694
+    "last_score_time": "2026-09-05T03:43:27.083395+00:00",
+    "last_checked_price": 11.704
   },
   {
     "symbol": "LTC-USDT",
@@ -1827,8 +1827,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T03:28:57.655357+00:00",
-    "last_checked_price": 52.71
+    "last_score_time": "2026-09-05T03:43:27.887712+00:00",
+    "last_checked_price": 52.68
   },
   {
     "symbol": "ORDI-USDT",
@@ -1869,8 +1869,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T03:28:49.179726+00:00",
-    "last_checked_price": 1031.2
+    "last_score_time": "2026-09-05T03:43:19.602134+00:00",
+    "last_checked_price": 1026.12
   },
   {
     "symbol": "TRX-USDT",
@@ -1887,6 +1887,27 @@
     "signal_score": 4,
     "last_score": 4,
     "signal_candle_ts": 1788577200000,
+    "exit_time": null,
+    "exit_price": null,
+    "exit_reason": null,
+    "last_score_time": "2026-09-05T03:43:29.548235+00:00",
+    "last_checked_price": 0.3319
+  },
+  {
+    "symbol": "UNI-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T03:43:52.004582+00:00",
+    "entry_price": 6.294,
+    "sl": 6.168119999999999,
+    "tp1": 6.482819999999999,
+    "tp2": 6.67164,
+    "tp1_hit": false,
+    "remaining_pct": 100,
+    "realized_pnl_pct": 0,
+    "signal_score": 4,
+    "last_score": 4,
+    "signal_candle_ts": 1788578100000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
