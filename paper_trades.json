@@ -2875,8 +2875,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:25:44.425465+00:00",
-    "last_checked_price": 0.16331
+    "last_score_time": "2026-09-05T17:39:00.610599+00:00",
+    "last_checked_price": 0.16307
   },
   {
     "symbol": "RE-USDT",
@@ -2944,23 +2944,23 @@
   {
     "symbol": "ZEC-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T14:52:25.289704+00:00",
     "entry_price": 1013.85,
     "sl": 993.573,
     "tp1": 1044.2655,
     "tp2": 1074.681,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 1.3276125659614264,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788618600000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T17:25:22.221066+00:00",
-    "last_checked_price": 1024.82
+    "exit_time": "2026-09-05T17:39:07.322085+00:00",
+    "exit_price": 1027.31,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T17:38:35.122782+00:00",
+    "last_checked_price": 1026.25
   },
   {
     "symbol": "AAVE-USDT",
@@ -2980,8 +2980,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:25:32.624812+00:00",
-    "last_checked_price": 132.11
+    "last_score_time": "2026-09-05T17:38:47.120556+00:00",
+    "last_checked_price": 132.93
   },
   {
     "symbol": "JUP-USDT",
@@ -3007,23 +3007,23 @@
   {
     "symbol": "HYPE-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T15:53:09.026037+00:00",
     "entry_price": 85.398,
     "sl": 83.69004,
     "tp1": 87.95994,
     "tp2": 90.52188,
     "tp1_hit": false,
-    "remaining_pct": 100,
-    "realized_pnl_pct": 0,
+    "remaining_pct": 0,
+    "realized_pnl_pct": 0.21663270802595178,
     "signal_score": 4,
-    "last_score": 4,
+    "last_score": 3,
     "signal_candle_ts": 1788622200000,
-    "exit_time": null,
-    "exit_price": null,
-    "exit_reason": null,
-    "last_score_time": "2026-09-05T17:25:23.663083+00:00",
-    "last_checked_price": 85.612
+    "exit_time": "2026-09-05T17:39:08.651644+00:00",
+    "exit_price": 85.583,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T17:38:36.772071+00:00",
+    "last_checked_price": 85.414
   },
   {
     "symbol": "BCH-USDT",
@@ -3043,8 +3043,8 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:25:30.112921+00:00",
-    "last_checked_price": 256.8
+    "last_score_time": "2026-09-05T17:38:44.146992+00:00",
+    "last_checked_price": 256.2
   },
   {
     "symbol": "JTO-USDT",
@@ -3106,24 +3106,45 @@
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null,
-    "last_score_time": "2026-09-05T17:25:21.868369+00:00",
-    "last_checked_price": 103.94
+    "last_score_time": "2026-09-05T17:38:34.704221+00:00",
+    "last_checked_price": 103.73
   },
   {
     "symbol": "SUI-USDT",
     "side": "LONG",
-    "status": "OPEN",
+    "status": "CLOSED",
     "entry_time": "2026-09-05T17:25:50.560794+00:00",
     "entry_price": 0.8043,
     "sl": 0.788214,
     "tp1": 0.8284290000000001,
     "tp2": 0.852558,
     "tp1_hit": false,
+    "remaining_pct": 0,
+    "realized_pnl_pct": -0.7957229889344725,
+    "signal_score": 4,
+    "last_score": 3,
+    "signal_candle_ts": 1788627600000,
+    "exit_time": "2026-09-05T17:39:07.989926+00:00",
+    "exit_price": 0.7979,
+    "exit_reason": "SELL SIGNAL",
+    "last_score_time": "2026-09-05T17:38:36.351014+00:00",
+    "last_checked_price": 0.7988
+  },
+  {
+    "symbol": "LIT-USDT",
+    "side": "LONG",
+    "status": "OPEN",
+    "entry_time": "2026-09-05T17:39:09.485524+00:00",
+    "entry_price": 4.7749,
+    "sl": 4.679402,
+    "tp1": 4.918146999999999,
+    "tp2": 5.061394,
+    "tp1_hit": false,
     "remaining_pct": 100,
     "realized_pnl_pct": 0,
     "signal_score": 4,
     "last_score": 4,
-    "signal_candle_ts": 1788627600000,
+    "signal_candle_ts": 1788628500000,
     "exit_time": null,
     "exit_price": null,
     "exit_reason": null
