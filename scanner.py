@@ -1556,6 +1556,8 @@ def open_trade(
 
         "current_pnl_pct": 0.0,
 
+        "intratrade_snapshots": [],
+
         "trailing_active": False,
         "trailing_stop_price": None,
 
@@ -1831,6 +1833,102 @@ def update_open_trades(
                 "current_sl"
             )
         )
+
+        trade.setdefault(
+            "intratrade_snapshots",
+            []
+        )
+
+        snapshot_timestamp = now_utc()
+
+        try:
+            entry_time = datetime.fromisoformat(
+                str(
+                    trade.get(
+                        "entry_time"
+                    )
+                )
+            )
+
+            snapshot_time = datetime.fromisoformat(
+                snapshot_timestamp
+            )
+
+            elapsed_minutes = max(
+                0,
+                int(
+                    (
+                        snapshot_time -
+                        entry_time
+                    ).total_seconds() /
+                    60
+                )
+            )
+
+        except Exception:
+            elapsed_minutes = 0
+
+        last_score = safe_float(
+            trade.get(
+                "last_score"
+            )
+        )
+
+        entry_score = safe_float(
+            trade.get(
+                "score"
+            ),
+            last_score
+        )
+
+        snapshots = trade[
+            "intratrade_snapshots"
+        ]
+
+        duplicate_snapshot = any(
+            isinstance(
+                snapshot,
+                dict
+            )
+            and (
+                snapshot.get(
+                    "timestamp"
+                ) == snapshot_timestamp
+            )
+            for snapshot in snapshots
+        )
+
+        if not duplicate_snapshot:
+
+            snapshots.append({
+                "timestamp": snapshot_timestamp,
+                "elapsed_minutes": elapsed_minutes,
+                "current_price": current,
+                "current_pnl_pct": current_pnl,
+                "peak_pnl_pct": safe_float(
+                    trade.get(
+                        "peak_pnl_pct"
+                    )
+                ),
+                "current_sl": current_sl,
+                "trailing_active": trade.get(
+                    "trailing_active",
+                    False
+                ),
+                "trailing_stop_price": trade.get(
+                    "trailing_stop_price"
+                ),
+                "last_score": last_score,
+                "score_delta": last_score - entry_score
+            })
+
+            trade[
+                "intratrade_snapshots"
+            ] = snapshots[
+                -96:
+            ]
+
+            changed = True
 
         if current <= current_sl:
 
