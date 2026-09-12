@@ -24,8 +24,7 @@ def num(x, d=0.0):
 
 def api(path, params):
     r = requests.get(BASE + path, params=params, timeout=20)
-    r.raise_for_status()
-    d = r.json()
+    r.raise_for_status(); d = r.json()
     if d.get("code") != "0": raise RuntimeError(d.get("msg", "OKX API error"))
     return d.get("data", [])
 
@@ -46,8 +45,7 @@ def adx(df,n=14):
     dx=100*(p-m).abs()/(p+m).replace(0,np.nan); return dx.ewm(alpha=1/n,adjust=False).mean().fillna(0)
 
 def candles(inst, bar, limit=300):
-    raw=api('/api/v5/market/candles',{'instId':inst,'bar':bar,'limit':str(limit)})
-    rows=[]
+    raw=api('/api/v5/market/candles',{'instId':inst,'bar':bar,'limit':str(limit)}); rows=[]
     for x in raw:
         if len(x)>=9 and x[8]=='1': rows.append({'ts':int(x[0]),'open':num(x[1]),'high':num(x[2]),'low':num(x[3]),'close':num(x[4]),'volume':num(x[5])})
     return pd.DataFrame(rows).sort_values('ts').drop_duplicates('ts').reset_index(drop=True) if rows else pd.DataFrame()
@@ -88,38 +86,27 @@ def funding(inst):
 
 def close_position(state,p,price,reason):
     entry=num(p['entry']); side=p['side']; move=(price-entry)/entry if side=='LONG' else (entry-price)/entry
-    notional=MARGIN_PER_TRADE*LEVERAGE; gross=notional*move; costs=notional*(FEE*2+SLIP)
-    pnl=gross-costs; state['equity']+=pnl
-    p.update({'status':'CLOSED','exit':price,'exit_time':now(),'pnl_pct':move,'net_pnl':pnl,'reason':reason})
-    state['history'].append(p.copy()); state['positions'].remove(p)
+    notional=MARGIN_PER_TRADE*LEVERAGE; gross=notional*move; costs=notional*(FEE*2+SLIP); pnl=gross-costs; state['equity']+=pnl
+    p.update({'status':'CLOSED','exit':price,'exit_time':now(),'pnl_pct':move,'net_pnl':pnl,'reason':reason}); state['history'].append(p.copy()); state['positions'].remove(p)
 
 def manage(state, prices):
     for p in state['positions'][:]:
         price=prices.get(p['symbol']);
         if not price: continue
-        entry=num(p['entry']); side=p['side']; move=(price-entry)/entry if side=='LONG' else (entry-price)/entry
-        p['current_pct']=move; p['peak_pct']=max(num(p.get('peak_pct')),move)
-        if side=='LONG':
-            if price<=num(p['stop']): close_position(state,p,price,'HARD_STOP'); continue
-        else:
-            if price>=num(p['stop']): close_position(state,p,price,'HARD_STOP'); continue
+        entry=num(p['entry']); side=p['side']; move=(price-entry)/entry if side=='LONG' else (entry-price)/entry; p['current_pct']=move; p['peak_pct']=max(num(p.get('peak_pct')),move)
+        if (side=='LONG' and price<=num(p['stop'])) or (side=='SHORT' and price>=num(p['stop'])): close_position(state,p,price,'HARD_STOP'); continue
         r=num(p['risk_pct'])
         if p['peak_pct']>=r:
-            lock=max(0.002,p['peak_pct']*0.45)
-            if side=='LONG': p['trail']=entry*(1+lock)
-            else: p['trail']=entry*(1-lock)
-            if (side=='LONG' and price<=p['trail']) or (side=='SHORT' and price>=p['trail']): close_position(state,p,'PROFIT_TRAIL'); continue
-        if p['peak_pct']>=2*r:
-            p['trail'] = entry*(1+0.75*p['peak_pct']) if side=='LONG' else entry*(1-0.75*p['peak_pct'])
+            lock=max(0.002,p['peak_pct']*0.45); p['trail']=entry*(1+lock) if side=='LONG' else entry*(1-lock)
+            if (side=='LONG' and price<=p['trail']) or (side=='SHORT' and price>=p['trail']): close_position(state,p,price,'PROFIT_TRAIL'); continue
+        if p['peak_pct']>=2*r: p['trail'] = entry*(1+0.75*p['peak_pct']) if side=='LONG' else entry*(1-0.75*p['peak_pct'])
 
 def signal(m,h,regime,fr):
     x=m.iloc[-1]; prev=m.iloc[-2]
-    trend_up=h.iloc[-1].close>h.iloc[-1].ema200 and h.iloc[-1].ema50>h.iloc[-1].ema200
-    trend_dn=h.iloc[-1].close<h.iloc[-1].ema200 and h.iloc[-1].ema50<h.iloc[-1].ema200
-    long_ok=(x.ema20>x.ema50>x.ema200 and x.adx>=22 and x.rsi>=52 and x.rsi<=68 and x.hist>0 and x.vol_ratio>=1.05 and x.close>x.hh20 and x.close<=x.ema20+1.8*x.atr and trend_up and fr<0.0008)
-    short_ok=(x.ema20<x.ema50<x.ema200 and x.adx>=22 and x.rsi>=32 and x.rsi<=48 and x.hist<0 and x.vol_ratio>=1.05 and x.close<x.ll20 and x.close>=x.ema20-1.8*x.atr and trend_dn and fr>-0.0008)
-    range_long=(regime=='RANGE' and x.rsi<29 and x.close<x.bb_dn and x.close>prev.close and fr<0.001)
-    range_short=(regime=='RANGE' and x.rsi>71 and x.close>x.bb_up and x.close<prev.close and fr>-0.001)
+    trend_up=h.iloc[-1].close>h.iloc[-1].ema200 and h.iloc[-1].ema50>h.iloc[-1].ema200; trend_dn=h.iloc[-1].close<h.iloc[-1].ema200 and h.iloc[-1].ema50<h.iloc[-1].ema200
+    long_ok=(x.ema20>x.ema50>x.ema200 and x.adx>=22 and x.rsi>=52 and x.rsi<=68 and x['hist']>0 and x.vol_ratio>=1.05 and x.close>x.hh20 and x.close<=x.ema20+1.8*x.atr and trend_up and fr<0.0008)
+    short_ok=(x.ema20<x.ema50<x.ema200 and x.adx>=22 and x.rsi>=32 and x.rsi<=48 and x['hist']<0 and x.vol_ratio>=1.05 and x.close<x.ll20 and x.close>=x.ema20-1.8*x.atr and trend_dn and fr>-0.0008)
+    range_long=(regime=='RANGE' and x.rsi<29 and x.close<x.bb_dn and x.close>prev.close and fr<0.001); range_short=(regime=='RANGE' and x.rsi>71 and x.close>x.bb_up and x.close<prev.close and fr>-0.001)
     if long_ok:return 'LONG','TREND'
     if short_ok:return 'SHORT','TREND'
     if range_long:return 'LONG','MEAN_REVERT'
@@ -131,8 +118,7 @@ def main():
     btc=candles('BTC-USDT-SWAP','1H',300); btc=enrich(btc)
     if btc.empty: raise RuntimeError('BTC regime unavailable')
     b=btc.iloc[-1]; regime='TREND_UP' if b.close>b.ema200 and b.ema50>b.ema200 and b.adx>=20 else ('TREND_DOWN' if b.close<b.ema200 and b.ema50<b.ema200 and b.adx>=20 else 'RANGE')
-    manage(state,prices)
-    existing={p['symbol'] for p in state['positions']}; opened=0; candidates=[]
+    manage(state,prices); existing={p['symbol'] for p in state['positions']}; opened=0; candidates=[]
     for s in universe:
         if len(state['positions'])+opened>=MAX_POSITIONS or s in existing: continue
         try:
@@ -141,7 +127,7 @@ def main():
             fr=funding(s); side,mode=signal(m,h,regime,fr)
             if not side: continue
             x=m.iloc[-1]; stop_dist=max(0.012,min(0.028,1.35*x.atr/x.close)); score=0
-            score += 30 if x.adx>=25 else 20; score += 20 if x.vol_ratio>=1.25 else 10; score += 20 if abs(fr)<0.0004 else 10; score += 20 if (side=='LONG' and x.hist>0) or (side=='SHORT' and x.hist<0) else 0; score += 10 if mode=='TREND' else 5
+            score += 30 if x.adx>=25 else 20; score += 20 if x.vol_ratio>=1.25 else 10; score += 20 if abs(fr)<0.0004 else 10; score += 20 if (side=='LONG' and x['hist']>0) or (side=='SHORT' and x['hist']<0) else 0; score += 10 if mode=='TREND' else 5
             if score<70: continue
             candidates.append((score,s,side,mode,x.close,stop_dist,fr))
         except Exception as e: print(s,e)
