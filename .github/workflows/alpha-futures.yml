@@ -34,9 +34,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Alpha Regime V1
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python alpha_futures.py
 
       - name: Persist paper state
