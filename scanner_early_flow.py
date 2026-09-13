@@ -114,14 +114,14 @@ def klines_binance(symbol,interval=INTERVAL,limit=80):
     # Kept under the old function name to preserve the strategy interface.
     raw=get(OKX,'/api/v5/market/candles',{'instId':symbol,'bar':'15m','limit':str(limit)}).get('data',[])
     raw=sorted(raw,key=lambda x:int(x[0]))
-    return [{'t':int(x[0]),'o':f(x[1]),'h':f(x[2]),'l':f(x[3]),'c':f(x[4]),'v':f(x[5]),'tb':f(x[6]) if len(x)>6 else 0.0} for x in raw]
+    # OKX candle fields are timestamp/open/high/low/close/volume/volCcy/volCcyQuote/confirm.
+    # There is no taker-buy field here, so do not invent one.
+    return [{'t':int(x[0]),'o':f(x[1]),'h':f(x[2]),'l':f(x[3]),'c':f(x[4]),'v':f(x[5]),'tb':0.0} for x in raw]
 
 def oi_binance(symbol):
     raw=get(OKX,'/api/v5/public/open-interest',{'instType':'SWAP','instId':symbol}).get('data',[])
-    # OKX returns the current snapshot. Keep a short in-run history so the
-    # strategy does not manufacture an OI change when the endpoint has no
-    # historical series.
     oi=f(raw[0].get('oi')) if raw else 0.0
+    # The public endpoint is a current snapshot. Do not manufacture historical OI.
     return [oi,oi]
 
 def bybit_snapshot(symbol):
@@ -138,11 +138,8 @@ def signal(symbol,rows,oi,funding,bybit):
     avgvol=sum(x['v'] for x in rows[-22:-2])/20; vr=c['v']/avgvol if avgvol>0 else 0
     move15=(price/rows[-3]['c']-1)*100; move60=(price/rows[-6]['c']-1)*100
     oi_change=(oi[-1]/oi[0]-1)*100 if oi[0]>0 else 0
-    # OKX supplies taker-buy base volume as field 7 on candles. Use it as a
-    # real flow confirmation instead of the old fabricated constant.
-    flow=c.get('tb',0.0)/c.get('v',1.0) if c.get('v',0)>0 else 0.5
-    bp=f(bybit.get('last'))
-    cross=(price/bp-1)*100 if bp>0 else 0
+    flow=0.5
+    bp=f(bybit.get('last')); cross=(price/bp-1)*100 if bp>0 else 0
     lp=sp=0.0
     if oi_change>=.6:lp+=18;sp+=18
     elif oi_change>=.25:lp+=10;sp+=10
@@ -161,8 +158,6 @@ def signal(symbol,rows,oi,funding,bybit):
     if ef and es:
         if ef>es:lp+=8
         if ef<es:sp+=8
-    if flow>=0.58:lp+=6
-    elif flow<=0.42:sp+=6
     side='LONG' if lp>=sp else 'SHORT'; score=max(lp,sp)
     if side=='LONG' and (move15>2.5 or move60>5):return None
     if side=='SHORT' and (move15<-2.5 or move60<-5):return None
