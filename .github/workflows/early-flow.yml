@@ -1,0 +1,46 @@
+name: Early Flow Radar V1 (PAPER)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: early-flow-paper
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu indir
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: early-flow-v1
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Paketleri kur
+        run: pip install requests
+
+      - name: Early Flow V1 çalıştır
+        run: python scanner_early_flow.py
+
+      - name: Paper state kaydet
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f early_flow_paper.json
+          if git diff --cached --quiet; then
+            echo "State değişmedi."
+            exit 0
+          fi
+          git commit -m "Update Early Flow paper trading state"
+          git push origin HEAD:early-flow-v1
