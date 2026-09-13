@@ -1,6 +1,39 @@
 {
   "equity": 982.4616150947013,
-  "positions": [],
+  "positions": [
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "DOGE-USDT-SWAP",
+      "side": "LONG",
+      "mode": "MEAN_REVERT",
+      "entry": 0.08352,
+      "entry_time": "2026-09-13T09:13:23.986974+00:00",
+      "stop": 0.08251776,
+      "risk_pct": 0.012,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": 0.0001,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "ARB-USDT-SWAP",
+      "side": "LONG",
+      "mode": "MEAN_REVERT",
+      "entry": 0.13511,
+      "entry_time": "2026-09-13T09:13:23.986996+00:00",
+      "stop": 0.13342260159020716,
+      "risk_pct": 0.012489071199710123,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": -1.20891564433e-05,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0
+    }
+  ],
   "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
