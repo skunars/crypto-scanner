@@ -21,8 +21,13 @@ SLIP = 0.0003
 TIMEOUT = 12
 STATE = Path(__file__).with_name("early_flow_radar_paper.json")
 
+# GitHub Actions runners can receive HTTP 451 from Binance Futures depending on
+# the runner's region. Early Flow therefore uses Bybit linear perpetual market
+# data as its execution-independent market-data source. This keeps the paper
+# strategy running even when Binance blocks the runner geographically.
+BYBIT = "https://api.bybit.com"
 S = requests.Session()
-S.headers["User-Agent"] = "EarlyFlowRadarV1/1.0"
+S.headers["User-Agent"] = "EarlyFlowRadarV1/1.1"
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def f(x, d=0.0):
@@ -96,24 +101,28 @@ def update_trade(s,t,rows):
         trail=t['trough']+TRAIL_ATR*a
         if trail<t['current_sl']:t['current_sl']=trail;t['trailing']=True
 
-def binance_symbols():
-    info=get('https://fapi.binance.com','/fapi/v1/exchangeInfo')
-    valid={x['symbol'] for x in info['symbols'] if x.get('status')=='TRADING' and x.get('contractType')=='PERPETUAL' and x.get('quoteAsset')=='USDT'}
-    tick=get('https://fapi.binance.com','/fapi/v1/ticker/24hr')
-    ranked=sorted([x for x in tick if x['symbol'] in valid],key=lambda x:f(x.get('quoteVolume')),reverse=True)
+def bybit_symbols():
+    info=get(BYBIT,'/v5/market/instruments-info',{'category':'linear','limit':1000})
+    valid={x['symbol'] for x in info.get('result',{}).get('list',[]) if x.get('status')=='Trading' and x.get('contractType')=='LinearPerpetual' and x.get('quoteCoin')=='USDT'}
+    tick=get(BYBIT,'/v5/market/tickers',{'category':'linear'}).get('result',{}).get('list',[])
+    ranked=sorted([x for x in tick if x.get('symbol') in valid],key=lambda x:f(x.get('turnover24h')),reverse=True)
     return [x['symbol'] for x in ranked[:TOP_N]]
 
 def klines_binance(symbol,interval=INTERVAL,limit=80):
-    a=get('https://fapi.binance.com','/fapi/v1/klines',{'symbol':symbol,'interval':interval,'limit':limit})
-    return [{'t':int(x[0]),'o':f(x[1]),'h':f(x[2]),'l':f(x[3]),'c':f(x[4]),'v':f(x[5]),'tb':f(x[9])} for x in a]
+    # Kept under the old function name to preserve the strategy interface.
+    raw=get(BYBIT,'/v5/market/kline',{'category':'linear','symbol':symbol,'interval':'15','limit':limit}).get('result',{}).get('list',[])
+    raw=sorted(raw,key=lambda x:int(x[0]))
+    return [{'t':int(x[0]),'o':f(x[1]),'h':f(x[2]),'l':f(x[3]),'c':f(x[4]),'v':f(x[5]),'tb':0.0} for x in raw]
 
 def oi_binance(symbol):
-    a=get('https://fapi.binance.com','/futures/data/openInterestHist',{'symbol':symbol,'period':INTERVAL,'limit':4})
-    return [f(x.get('sumOpenInterestValue')) for x in a]
+    raw=get(BYBIT,'/v5/market/open-interest',{'category':'linear','symbol':symbol,'intervalTime':'15min','limit':4}).get('result',{}).get('list',[])
+    raw=sorted(raw,key=lambda x:int(x.get('timestamp',0)))
+    return [f(x.get('openInterest')) for x in raw]
 
-def funding_binance(symbol): return f(get('https://fapi.binance.com','/fapi/v1/premiumIndex',{'symbol':symbol}).get('lastFundingRate'))
 def bybit_snapshot(symbol):
-    a=get('https://api.bybit.com','/v5/market/tickers',{'category':'linear','symbol':symbol}); rows=a.get('result',{}).get('list',[]); return rows[0] if rows else {}
+    a=get(BYBIT,'/v5/market/tickers',{'category':'linear','symbol':symbol}); rows=a.get('result',{}).get('list',[]); return rows[0] if rows else {}
+
+def funding_binance(symbol): return f(bybit_snapshot(symbol).get('fundingRate'))
 
 def signal(symbol,rows,oi,funding,bybit):
     if len(rows)<30 or len(oi)<2:return None
@@ -122,7 +131,10 @@ def signal(symbol,rows,oi,funding,bybit):
     closes=[x['c'] for x in rows[:-1]]; ef,es=ema(closes,9),ema(closes,21)
     avgvol=sum(x['v'] for x in rows[-22:-2])/20; vr=c['v']/avgvol if avgvol>0 else 0
     move15=(price/rows[-3]['c']-1)*100; move60=(price/rows[-6]['c']-1)*100
-    oi_change=(oi[-1]/oi[0]-1)*100 if oi[0]>0 else 0; flow=c['tb']/c['v'] if c['v']>0 else .5
+    oi_change=(oi[-1]/oi[0]-1)*100 if oi[0]>0 else 0
+    # Bybit kline does not expose taker-buy volume in the same shape, so use
+    # price/volume confirmation instead of fabricating a buy-flow value.
+    flow=0.5
     bp=f(bybit.get('lastPrice')); cross=(price/bp-1)*100 if bp>0 else 0
     lp=sp=0.0
     if oi_change>=.6:lp+=18;sp+=18
@@ -134,8 +146,6 @@ def signal(symbol,rows,oi,funding,bybit):
     if -2.5<=move15<=-.25:sp+=12
     if .4<=move60<=4:lp+=8
     if -4<=move60<=-.4:sp+=8
-    if flow>=.56:lp+=16
-    elif flow<=.44:sp+=16
     if funding<=-.0004:lp+=10
     elif funding>=.0004:sp+=10
     if bp>0:
@@ -152,8 +162,8 @@ def signal(symbol,rows,oi,funding,bybit):
     return {'symbol':symbol,'side':side,'score':round(score,1),'entry':price,'atr':a,'sl':sl,'vol_ratio':vr,'move15':move15,'move60':move60,'oi_change':oi_change,'flow':flow,'funding':funding,'cross_pct':cross}
 
 def main():
-    s=state_load(); s['runs']+=1; symbols=binance_symbols(); candidates=opened=0
-    print(f"=== EARLY FLOW RADAR V1 | {len(symbols)} symbols | balance={s['balance']:.2f} TL ===")
+    s=state_load(); s['runs']+=1; symbols=bybit_symbols(); candidates=opened=0
+    print(f"=== EARLY FLOW RADAR V1.1 | BYBIT LINEAR | {len(symbols)} symbols | balance={s['balance']:.2f} TL ===")
     for t in list(opens(s)):
         try:update_trade(s,t,klines_binance(t['symbol']))
         except Exception as e:print('UPDATE_ERR',t['symbol'],e)
