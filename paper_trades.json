@@ -5328,9 +5328,9 @@
     "market_regime": "TREND",
     "htf_score": 15,
     "htf_confirmed": true,
-    "peak_price": 0.33947,
+    "peak_price": 0.33965,
     "peak_pnl_pct": 0.022005107798301442,
-    "current_pnl_pct": 0.008107144978321584,
+    "current_pnl_pct": 0.008641682009859309,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -21446,9 +21446,9 @@
     "market_regime": "STRONG_TREND",
     "htf_score": 8,
     "htf_confirmed": false,
-    "peak_price": 54.32,
+    "peak_price": 54.2,
     "peak_pnl_pct": 0.01837270341207343,
-    "current_pnl_pct": 0.01837270341207343,
+    "current_pnl_pct": 0.016122984626921622,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-11T15:13:56.636621+00:00",
@@ -28426,9 +28426,9 @@
     "market_regime": "STRONG_TREND",
     "htf_score": 15,
     "htf_confirmed": true,
-    "peak_price": 2523.7,
+    "peak_price": 2522.62,
     "peak_pnl_pct": 0.009223356841516131,
-    "current_pnl_pct": 0.001591465616801973,
+    "current_pnl_pct": 0.0011628414606558092,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-12T07:39:29.469180+00:00",
