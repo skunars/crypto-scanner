@@ -1,24 +1,6 @@
 {
-  "equity": 985.3056222000229,
-  "positions": [
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "DOGE-USDT-SWAP",
-      "side": "LONG",
-      "mode": "MEAN_REVERT",
-      "entry": 0.08352,
-      "entry_time": "2026-09-13T09:13:23.986974+00:00",
-      "stop": 0.08251776,
-      "risk_pct": 0.012,
-      "peak_pct": 0.012092911877394601,
-      "current_pct": 0.006226053639846822,
-      "funding_at_entry": 0.0001,
-      "score": 75,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.0839745
-    }
-  ],
+  "equity": 983.2333233494481,
+  "positions": [],
   "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -107,6 +89,29 @@
       "exit_time": "2026-09-13T13:25:09.285665+00:00",
       "pnl_pct": 0.010880023684405292,
       "net_pnl": 2.844007105321588,
+      "reason": "PROFIT_TRAIL"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "DOGE-USDT-SWAP",
+      "side": "LONG",
+      "mode": "MEAN_REVERT",
+      "entry": 0.08352,
+      "entry_time": "2026-09-13T09:13:23.986974+00:00",
+      "stop": 0.08251776,
+      "risk_pct": 0.012,
+      "peak_pct": 0.012092911877394601,
+      "current_pct": -0.005507662835249067,
+      "funding_at_entry": 0.0001,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.0839745,
+      "status": "CLOSED",
+      "exit": 0.08306,
+      "exit_time": "2026-09-13T22:10:50.790627+00:00",
+      "pnl_pct": -0.005507662835249067,
+      "net_pnl": -2.07229885057472,
       "reason": "PROFIT_TRAIL"
     }
   ],
