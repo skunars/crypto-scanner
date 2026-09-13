@@ -1,4 +1,4 @@
-name: Early Flow Radar V1 (PAPER)
+name: Early Flow Radar V1 - PAPER
 
 on:
   workflow_dispatch:
@@ -9,38 +9,38 @@ permissions:
   contents: write
 
 concurrency:
-  group: early-flow-paper
+  group: early-flow-radar-paper
   cancel-in-progress: false
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Kodu indir
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: main
 
-      - name: Python kur
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Paketleri kur
+      - name: Install dependencies
         run: pip install requests
 
-      - name: Early Flow V1 çalıştır
+      - name: Run Early Flow Radar V1
         run: python scanner_early_flow.py
 
-      - name: Paper state kaydet
+      - name: Save paper trading state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f early_flow_paper.json
+          git add -f early_flow_radar_paper.json
           if git diff --cached --quiet; then
-            echo "State değişmedi."
+            echo "No paper state change."
             exit 0
           fi
-          git commit -m "Update Early Flow paper trading state"
+          git commit -m "Update Early Flow Radar paper state"
           git push origin HEAD:main
