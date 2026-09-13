@@ -11,9 +11,25 @@
       "stop": 0.003145296,
       "risk_pct": 0.012,
       "peak_pct": 0.0006435006435007289,
-      "current_pct": -0.004182754182754179,
+      "current_pct": -0.008043758043757995,
       "funding_at_entry": 1.52947409536e-05,
       "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "DOOD-USDT-SWAP",
+      "side": "LONG",
+      "mode": "TREND",
+      "entry": 0.001756,
+      "entry_time": "2026-09-13T07:15:48.514159+00:00",
+      "stop": 0.001734928,
+      "risk_pct": 0.012,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": 2.09742601954e-05,
+      "score": 100,
       "margin_tl": 100.0,
       "leverage": 3.0
     }
