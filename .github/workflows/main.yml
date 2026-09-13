@@ -1,12 +1,7 @@
-name: OKX Crypto Scanner
+name: OKX Crypto Scanner (PAUSED)
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
-  push:
-    paths-ignore:
-      - "paper_trades.json"
 
 permissions:
   contents: write
