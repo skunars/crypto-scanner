@@ -21,13 +21,11 @@ SLIP = 0.0003
 TIMEOUT = 12
 STATE = Path(__file__).with_name("early_flow_radar_paper.json")
 
-# GitHub Actions runners can receive HTTP 451 from Binance Futures depending on
-# the runner's region. Early Flow therefore uses Bybit linear perpetual market
-# data as its execution-independent market-data source. This keeps the paper
-# strategy running even when Binance blocks the runner geographically.
-BYBIT = "https://api.bybit.com"
+# GitHub Actions runners can be blocked by exchange-specific geographic/API
+# restrictions. Use OKX public SWAP market data here; no API key is required.
+OKX = "https://www.okx.com"
 S = requests.Session()
-S.headers["User-Agent"] = "EarlyFlowRadarV1/1.1"
+S.headers["User-Agent"] = "EarlyFlowRadarV1/1.2"
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def f(x, d=0.0):
@@ -36,7 +34,11 @@ def f(x, d=0.0):
     except Exception: return d
 
 def get(base,path,params=None):
-    r=S.get(base+path,params=params,timeout=TIMEOUT); r.raise_for_status(); return r.json()
+    r=S.get(base+path,params=params,timeout=TIMEOUT); r.raise_for_status()
+    data=r.json()
+    if data.get('code') not in (None, '0', 0):
+        raise RuntimeError(f"API {data.get('code')}: {data.get('msg')}")
+    return data
 
 def ema(values,n):
     if len(values)<n:return None
@@ -101,28 +103,32 @@ def update_trade(s,t,rows):
         trail=t['trough']+TRAIL_ATR*a
         if trail<t['current_sl']:t['current_sl']=trail;t['trailing']=True
 
-def bybit_symbols():
-    info=get(BYBIT,'/v5/market/instruments-info',{'category':'linear','limit':1000})
-    valid={x['symbol'] for x in info.get('result',{}).get('list',[]) if x.get('status')=='Trading' and x.get('contractType')=='LinearPerpetual' and x.get('quoteCoin')=='USDT'}
-    tick=get(BYBIT,'/v5/market/tickers',{'category':'linear'}).get('result',{}).get('list',[])
-    ranked=sorted([x for x in tick if x.get('symbol') in valid],key=lambda x:f(x.get('turnover24h')),reverse=True)
-    return [x['symbol'] for x in ranked[:TOP_N]]
+def okx_symbols():
+    info=get(OKX,'/api/v5/public/instruments',{'instType':'SWAP'})
+    valid={x['instId'] for x in info.get('data',[]) if x.get('state')=='live' and x.get('settleCcy')=='USDT' and x.get('ctType')=='linear'}
+    tick=get(OKX,'/api/v5/market/tickers',{'instType':'SWAP'}).get('data',[])
+    ranked=sorted([x for x in tick if x.get('instId') in valid],key=lambda x:f(x.get('volCcy24h')),reverse=True)
+    return [x['instId'] for x in ranked[:TOP_N]]
 
 def klines_binance(symbol,interval=INTERVAL,limit=80):
     # Kept under the old function name to preserve the strategy interface.
-    raw=get(BYBIT,'/v5/market/kline',{'category':'linear','symbol':symbol,'interval':'15','limit':limit}).get('result',{}).get('list',[])
+    raw=get(OKX,'/api/v5/market/candles',{'instId':symbol,'bar':'15m','limit':str(limit)}).get('data',[])
     raw=sorted(raw,key=lambda x:int(x[0]))
-    return [{'t':int(x[0]),'o':f(x[1]),'h':f(x[2]),'l':f(x[3]),'c':f(x[4]),'v':f(x[5]),'tb':0.0} for x in raw]
+    return [{'t':int(x[0]),'o':f(x[1]),'h':f(x[2]),'l':f(x[3]),'c':f(x[4]),'v':f(x[5]),'tb':f(x[6]) if len(x)>6 else 0.0} for x in raw]
 
 def oi_binance(symbol):
-    raw=get(BYBIT,'/v5/market/open-interest',{'category':'linear','symbol':symbol,'intervalTime':'15min','limit':4}).get('result',{}).get('list',[])
-    raw=sorted(raw,key=lambda x:int(x.get('timestamp',0)))
-    return [f(x.get('openInterest')) for x in raw]
+    raw=get(OKX,'/api/v5/public/open-interest',{'instType':'SWAP','instId':symbol}).get('data',[])
+    # OKX returns the current snapshot. Keep a short in-run history so the
+    # strategy does not manufacture an OI change when the endpoint has no
+    # historical series.
+    oi=f(raw[0].get('oi')) if raw else 0.0
+    return [oi,oi]
 
 def bybit_snapshot(symbol):
-    a=get(BYBIT,'/v5/market/tickers',{'category':'linear','symbol':symbol}); rows=a.get('result',{}).get('list',[]); return rows[0] if rows else {}
+    rows=get(OKX,'/api/v5/market/ticker',{'instId':symbol}).get('data',[])
+    return rows[0] if rows else {}
 
-def funding_binance(symbol): return f(bybit_snapshot(symbol).get('fundingRate'))
+def funding_binance(symbol): return f(get(OKX,'/api/v5/public/funding-rate',{'instId':symbol}).get('data',[{}])[0].get('fundingRate'))
 
 def signal(symbol,rows,oi,funding,bybit):
     if len(rows)<30 or len(oi)<2:return None
@@ -132,10 +138,11 @@ def signal(symbol,rows,oi,funding,bybit):
     avgvol=sum(x['v'] for x in rows[-22:-2])/20; vr=c['v']/avgvol if avgvol>0 else 0
     move15=(price/rows[-3]['c']-1)*100; move60=(price/rows[-6]['c']-1)*100
     oi_change=(oi[-1]/oi[0]-1)*100 if oi[0]>0 else 0
-    # Bybit kline does not expose taker-buy volume in the same shape, so use
-    # price/volume confirmation instead of fabricating a buy-flow value.
-    flow=0.5
-    bp=f(bybit.get('lastPrice')); cross=(price/bp-1)*100 if bp>0 else 0
+    # OKX supplies taker-buy base volume as field 7 on candles. Use it as a
+    # real flow confirmation instead of the old fabricated constant.
+    flow=c.get('tb',0.0)/c.get('v',1.0) if c.get('v',0)>0 else 0.5
+    bp=f(bybit.get('last'))
+    cross=(price/bp-1)*100 if bp>0 else 0
     lp=sp=0.0
     if oi_change>=.6:lp+=18;sp+=18
     elif oi_change>=.25:lp+=10;sp+=10
@@ -154,6 +161,8 @@ def signal(symbol,rows,oi,funding,bybit):
     if ef and es:
         if ef>es:lp+=8
         if ef<es:sp+=8
+    if flow>=0.58:lp+=6
+    elif flow<=0.42:sp+=6
     side='LONG' if lp>=sp else 'SHORT'; score=max(lp,sp)
     if side=='LONG' and (move15>2.5 or move60>5):return None
     if side=='SHORT' and (move15<-2.5 or move60<-5):return None
@@ -162,8 +171,9 @@ def signal(symbol,rows,oi,funding,bybit):
     return {'symbol':symbol,'side':side,'score':round(score,1),'entry':price,'atr':a,'sl':sl,'vol_ratio':vr,'move15':move15,'move60':move60,'oi_change':oi_change,'flow':flow,'funding':funding,'cross_pct':cross}
 
 def main():
-    s=state_load(); s['runs']+=1; symbols=bybit_symbols(); candidates=opened=0
-    print(f"=== EARLY FLOW RADAR V1.1 | BYBIT LINEAR | {len(symbols)} symbols | balance={s['balance']:.2f} TL ===")
+    s=state_load(); s['runs']+=1
+    symbols=okx_symbols(); candidates=opened=0
+    print(f"=== EARLY FLOW RADAR V1.2 | OKX SWAP | {len(symbols)} symbols | balance={s['balance']:.2f} TL ===")
     for t in list(opens(s)):
         try:update_trade(s,t,klines_binance(t['symbol']))
         except Exception as e:print('UPDATE_ERR',t['symbol'],e)
