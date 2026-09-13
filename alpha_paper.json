@@ -1,6 +1,23 @@
 {
   "equity": 1000.0,
-  "positions": [],
+  "positions": [
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "DOOD-USDT-SWAP",
+      "side": "LONG",
+      "mode": "TREND",
+      "entry": 0.001738,
+      "entry_time": "2026-09-13T00:44:36.239237+00:00",
+      "stop": 0.0017171439999999999,
+      "risk_pct": 0.012,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": 5e-05,
+      "score": 100,
+      "margin_tl": 100.0,
+      "leverage": 3.0
+    }
+  ],
   "history": [],
   "version": "ALPHA_REGIME_V1"
 }
