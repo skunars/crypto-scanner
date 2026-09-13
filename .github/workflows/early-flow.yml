@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: early-flow-v1
+          ref: main
 
       - name: Python kur
         uses: actions/setup-python@v5
@@ -43,4 +43,4 @@ jobs:
             exit 0
           fi
           git commit -m "Update Early Flow paper trading state"
-          git push origin HEAD:early-flow-v1
+          git push origin HEAD:main
