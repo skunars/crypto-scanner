@@ -5328,9 +5328,9 @@
     "market_regime": "TREND",
     "htf_score": 15,
     "htf_confirmed": true,
-    "peak_price": 0.3407,
+    "peak_price": 0.34056,
     "peak_pnl_pct": 0.022005107798301442,
-    "current_pnl_pct": 0.011759814693829125,
+    "current_pnl_pct": 0.011344063669299728,
     "trailing_active": false,
     "trailing_stop_price": null,
     "last_milestone": 0,
@@ -18585,9 +18585,9 @@
     "market_regime": "STRONG_TREND",
     "htf_score": 4,
     "htf_confirmed": false,
-    "peak_price": 114.4,
+    "peak_price": 114.37,
     "peak_pnl_pct": 0.018974995566589825,
-    "current_pnl_pct": 0.0143642489803157,
+    "current_pnl_pct": 0.014098244369569102,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-11T15:13:56.636580+00:00",
@@ -21446,9 +21446,9 @@
     "market_regime": "STRONG_TREND",
     "htf_score": 8,
     "htf_confirmed": false,
-    "peak_price": 53.93,
+    "peak_price": 53.8,
     "peak_pnl_pct": 0.016872890888638893,
-    "current_pnl_pct": 0.011061117360329888,
+    "current_pnl_pct": 0.008623922009748663,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-11T15:13:56.636621+00:00",
@@ -26350,9 +26350,9 @@
     "market_regime": "TREND",
     "htf_score": 15,
     "htf_confirmed": true,
-    "peak_price": 0.2418,
+    "peak_price": 0.2414,
     "peak_pnl_pct": 0.01879852881078869,
-    "current_pnl_pct": -0.011851246424192946,
+    "current_pnl_pct": -0.013485901103391897,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-11T23:51:54.012758+00:00",
@@ -28426,9 +28426,9 @@
     "market_regime": "STRONG_TREND",
     "htf_score": 15,
     "htf_confirmed": true,
-    "peak_price": 2525.25,
+    "peak_price": 2523.14,
     "peak_pnl_pct": 0.009223356841516131,
-    "current_pnl_pct": 0.0022066206557155624,
+    "current_pnl_pct": 0.0013692160543558208,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-12T07:39:29.469180+00:00",
