@@ -1,6 +1,7 @@
 {
-  "equity": 1000.0,
-  "positions": [
+  "equity": 993.1933486766399,
+  "positions": [],
+  "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
       "symbol": "DOOD-USDT-SWAP",
@@ -11,13 +12,18 @@
       "stop": 0.0017171439999999999,
       "risk_pct": 0.012,
       "peak_pct": 0.0,
-      "current_pct": -0.004602991944764084,
+      "current_pct": -0.021288837744533905,
       "funding_at_entry": 5e-05,
       "score": 100,
       "margin_tl": 100.0,
-      "leverage": 3.0
+      "leverage": 3.0,
+      "status": "CLOSED",
+      "exit": 0.001701,
+      "exit_time": "2026-09-13T01:13:50.045959+00:00",
+      "pnl_pct": -0.021288837744533905,
+      "net_pnl": -6.806651323360171,
+      "reason": "HARD_STOP"
     }
   ],
-  "history": [],
   "version": "ALPHA_REGIME_V1"
 }
