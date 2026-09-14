@@ -1,6 +1,23 @@
 {
   "equity": 986.4886610780565,
-  "positions": [],
+  "positions": [
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "ARB-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "MEAN_REVERT",
+      "entry": 0.14026,
+      "entry_time": "2026-09-14T18:12:40.415343+00:00",
+      "stop": 0.14220627405272615,
+      "risk_pct": 0.013876187457052316,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": 0.0001,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0
+    }
+  ],
   "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
