@@ -1,5 +1,5 @@
 {
-  "equity": 983.2333233494481,
+  "equity": 987.7720010353986,
   "positions": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -11,29 +11,12 @@
       "stop": 0.00774592,
       "risk_pct": 0.012,
       "peak_pct": 0.030357142857142905,
-      "current_pct": 0.027551020408163384,
+      "current_pct": 0.02423469387755114,
       "funding_at_entry": 1.070042308e-07,
       "score": 75,
       "margin_tl": 100.0,
       "leverage": 3.0,
       "trail": 0.0080185
-    },
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "CHZ-USDT-SWAP",
-      "side": "LONG",
-      "mode": "MEAN_REVERT",
-      "entry": 0.01452,
-      "entry_time": "2026-09-13T22:52:11.325979+00:00",
-      "stop": 0.014345759999999999,
-      "risk_pct": 0.012,
-      "peak_pct": 0.03856749311294764,
-      "current_pct": 0.020661157024793382,
-      "funding_at_entry": -0.0003420365367533,
-      "score": 75,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.01494
     }
   ],
   "history": [
@@ -147,6 +130,29 @@
       "exit_time": "2026-09-13T22:10:50.790627+00:00",
       "pnl_pct": -0.005507662835249067,
       "net_pnl": -2.07229885057472,
+      "reason": "PROFIT_TRAIL"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "CHZ-USDT-SWAP",
+      "side": "LONG",
+      "mode": "MEAN_REVERT",
+      "entry": 0.01452,
+      "entry_time": "2026-09-13T22:52:11.325979+00:00",
+      "stop": 0.014345759999999999,
+      "risk_pct": 0.012,
+      "peak_pct": 0.03856749311294764,
+      "current_pct": 0.016528925619834753,
+      "funding_at_entry": -0.0003420365367533,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.014771999999999999,
+      "status": "CLOSED",
+      "exit": 0.01476,
+      "exit_time": "2026-09-14T03:47:00.331453+00:00",
+      "pnl_pct": 0.016528925619834753,
+      "net_pnl": 4.538677685950426,
       "reason": "PROFIT_TRAIL"
     }
   ],
