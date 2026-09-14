@@ -1,24 +1,6 @@
 {
-  "equity": 987.7720010353986,
-  "positions": [
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "ZORA-USDT-SWAP",
-      "side": "LONG",
-      "mode": "MEAN_REVERT",
-      "entry": 0.00784,
-      "entry_time": "2026-09-13T22:52:11.325952+00:00",
-      "stop": 0.00774592,
-      "risk_pct": 0.012,
-      "peak_pct": 0.030357142857142905,
-      "current_pct": 0.014923469387755203,
-      "funding_at_entry": 1.070042308e-07,
-      "score": 75,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.0080185
-    }
-  ],
+  "equity": 990.5280214435619,
+  "positions": [],
   "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -153,6 +135,29 @@
       "exit_time": "2026-09-14T03:47:00.331453+00:00",
       "pnl_pct": 0.016528925619834753,
       "net_pnl": 4.538677685950426,
+      "reason": "PROFIT_TRAIL"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "ZORA-USDT-SWAP",
+      "side": "LONG",
+      "mode": "MEAN_REVERT",
+      "entry": 0.00784,
+      "entry_time": "2026-09-13T22:52:11.325952+00:00",
+      "stop": 0.00774592,
+      "risk_pct": 0.012,
+      "peak_pct": 0.030357142857142905,
+      "current_pct": 0.010586734693877518,
+      "funding_at_entry": 1.070042308e-07,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.0079471,
+      "status": "CLOSED",
+      "exit": 0.007923,
+      "exit_time": "2026-09-14T07:12:16.613769+00:00",
+      "pnl_pct": 0.010586734693877518,
+      "net_pnl": 2.7560204081632556,
       "reason": "PROFIT_TRAIL"
     }
   ],
