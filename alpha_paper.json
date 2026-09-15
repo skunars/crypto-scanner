@@ -10,13 +10,13 @@
       "entry_time": "2026-09-14T18:12:40.415343+00:00",
       "stop": 0.14220627405272615,
       "risk_pct": 0.013876187457052316,
-      "peak_pct": 0.05268786539284192,
-      "current_pct": 0.05204619991444461,
+      "peak_pct": 0.05397119634963635,
+      "current_pct": 0.05397119634963635,
       "funding_at_entry": 0.0001,
       "score": 75,
       "margin_tl": 100.0,
       "leverage": 3.0,
-      "trail": 0.1347175
+      "trail": 0.1345825
     },
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -27,8 +27,8 @@
       "entry_time": "2026-09-15T03:31:48.417387+00:00",
       "stop": 8.35406e-05,
       "risk_pct": 0.012,
-      "peak_pct": 0.0,
-      "current_pct": -0.0024227740763174423,
+      "peak_pct": 0.00024227740763177707,
+      "current_pct": 0.00024227740763177707,
       "funding_at_entry": 5e-05,
       "score": 100,
       "margin_tl": 100.0,
