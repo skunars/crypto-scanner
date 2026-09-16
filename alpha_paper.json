@@ -1,5 +1,5 @@
 {
-  "equity": 984.1262554981928,
+  "equity": 990.8565145655504,
   "positions": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -11,29 +11,12 @@
       "stop": 0.0022010999999999997,
       "risk_pct": 0.012,
       "peak_pct": 0.056091954022988375,
-      "current_pct": 0.031724137931034506,
+      "current_pct": 0.03448275862068965,
       "funding_at_entry": -8.0002871167e-05,
       "score": 100,
       "margin_tl": 100.0,
       "leverage": 3.0,
       "trail": 0.0020835000000000003
-    },
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "SOPH-USDT-SWAP",
-      "side": "SHORT",
-      "mode": "TREND",
-      "entry": 0.00386,
-      "entry_time": "2026-09-15T08:44:24.362115+00:00",
-      "stop": 0.003912575561618608,
-      "risk_pct": 0.013620611818292248,
-      "peak_pct": 0.07279792746113989,
-      "current_pct": 0.06450777202072541,
-      "funding_at_entry": -0.0007158484152027,
-      "score": 80,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.00364925
     }
   ],
   "history": [
@@ -306,6 +289,29 @@
       "pnl_pct": -0.013608772273350347,
       "net_pnl": -4.502631682005104,
       "reason": "HARD_STOP"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "SOPH-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "TREND",
+      "entry": 0.00386,
+      "entry_time": "2026-09-15T08:44:24.362115+00:00",
+      "stop": 0.003912575561618608,
+      "risk_pct": 0.013620611818292248,
+      "peak_pct": 0.07279792746113989,
+      "current_pct": 0.023834196891191727,
+      "funding_at_entry": -0.0007158484152027,
+      "score": 80,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.00373355,
+      "status": "CLOSED",
+      "exit": 0.003768,
+      "exit_time": "2026-09-16T01:11:46.897901+00:00",
+      "pnl_pct": 0.023834196891191727,
+      "net_pnl": 6.730259067357518,
+      "reason": "PROFIT_TRAIL"
     }
   ],
   "version": "ALPHA_REGIME_V1"
