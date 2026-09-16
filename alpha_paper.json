@@ -1,5 +1,5 @@
 {
-  "equity": 990.8565145655504,
+  "equity": 982.620450200177,
   "positions": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -11,44 +11,12 @@
       "stop": 0.0022010999999999997,
       "risk_pct": 0.012,
       "peak_pct": 0.056091954022988375,
-      "current_pct": 0.039540229885057336,
+      "current_pct": 0.03724137931034479,
       "funding_at_entry": -8.0002871167e-05,
       "score": 100,
       "margin_tl": 100.0,
       "leverage": 3.0,
       "trail": 0.0020835000000000003
-    },
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "NEIRO-USDT-SWAP",
-      "side": "SHORT",
-      "mode": "TREND",
-      "entry": 7.763e-05,
-      "entry_time": "2026-09-16T01:54:15.018879+00:00",
-      "stop": 7.856156000000001e-05,
-      "risk_pct": 0.012,
-      "peak_pct": 0.003478036841427228,
-      "current_pct": -0.004122117737987852,
-      "funding_at_entry": 5e-05,
-      "score": 100,
-      "margin_tl": 100.0,
-      "leverage": 3.0
-    },
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "PENGU-USDT-SWAP",
-      "side": "SHORT",
-      "mode": "TREND",
-      "entry": 0.006755,
-      "entry_time": "2026-09-16T02:11:53.346164+00:00",
-      "stop": 0.00683606,
-      "risk_pct": 0.012,
-      "peak_pct": 0.0,
-      "current_pct": -0.007253886010362759,
-      "funding_at_entry": 9.8117372657e-06,
-      "score": 90,
-      "margin_tl": 100.0,
-      "leverage": 3.0
     }
   ],
   "history": [
@@ -344,6 +312,50 @@
       "pnl_pct": 0.023834196891191727,
       "net_pnl": 6.730259067357518,
       "reason": "PROFIT_TRAIL"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "NEIRO-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "TREND",
+      "entry": 7.763e-05,
+      "entry_time": "2026-09-16T01:54:15.018879+00:00",
+      "stop": 7.856156000000001e-05,
+      "risk_pct": 0.012,
+      "peak_pct": 0.003478036841427228,
+      "current_pct": -0.01236635321396373,
+      "funding_at_entry": 5e-05,
+      "score": 100,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "status": "CLOSED",
+      "exit": 7.859e-05,
+      "exit_time": "2026-09-16T04:11:21.218540+00:00",
+      "pnl_pct": -0.01236635321396373,
+      "net_pnl": -4.12990596418912,
+      "reason": "HARD_STOP"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "PENGU-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "TREND",
+      "entry": 0.006755,
+      "entry_time": "2026-09-16T02:11:53.346164+00:00",
+      "stop": 0.00683606,
+      "risk_pct": 0.012,
+      "peak_pct": 0.0,
+      "current_pct": -0.01228719467061445,
+      "funding_at_entry": 9.8117372657e-06,
+      "score": 90,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "status": "CLOSED",
+      "exit": 0.006838,
+      "exit_time": "2026-09-16T04:11:21.218555+00:00",
+      "pnl_pct": -0.01228719467061445,
+      "net_pnl": -4.106158401184335,
+      "reason": "HARD_STOP"
     }
   ],
   "version": "ALPHA_REGIME_V1"
