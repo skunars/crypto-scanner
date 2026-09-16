@@ -11,12 +11,28 @@
       "stop": 0.0022010999999999997,
       "risk_pct": 0.012,
       "peak_pct": 0.056091954022988375,
-      "current_pct": 0.03448275862068965,
+      "current_pct": 0.03586206896551722,
       "funding_at_entry": -8.0002871167e-05,
       "score": 100,
       "margin_tl": 100.0,
       "leverage": 3.0,
       "trail": 0.0020835000000000003
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "NEIRO-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "TREND",
+      "entry": 7.763e-05,
+      "entry_time": "2026-09-16T01:54:15.018879+00:00",
+      "stop": 7.856156000000001e-05,
+      "risk_pct": 0.012,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": 5e-05,
+      "score": 100,
+      "margin_tl": 100.0,
+      "leverage": 3.0
     }
   ],
   "history": [
