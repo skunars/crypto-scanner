@@ -11,12 +11,28 @@
       "stop": 0.0022010999999999997,
       "risk_pct": 0.012,
       "peak_pct": 0.07954022988505746,
-      "current_pct": 0.04689655172413778,
+      "current_pct": 0.043218390804597655,
       "funding_at_entry": -8.0002871167e-05,
       "score": 100,
       "margin_tl": 100.0,
       "leverage": 3.0,
       "trail": 0.0020452499999999998
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "CAP-USDT-SWAP",
+      "side": "LONG",
+      "mode": "TREND",
+      "entry": 0.06003,
+      "entry_time": "2026-09-16T23:40:00.967166+00:00",
+      "stop": 0.05917942601731285,
+      "risk_pct": 0.014169148470550548,
+      "peak_pct": 0.0,
+      "current_pct": 0.0,
+      "funding_at_entry": 5e-05,
+      "score": 90,
+      "margin_tl": 100.0,
+      "leverage": 3.0
     }
   ],
   "history": [
