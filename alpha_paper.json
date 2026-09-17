@@ -1,5 +1,5 @@
 {
-  "equity": 977.2705138944444,
+  "equity": 976.4007387820006,
   "positions": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -11,29 +11,12 @@
       "stop": 0.0022010999999999997,
       "risk_pct": 0.012,
       "peak_pct": 0.07954022988505746,
-      "current_pct": 0.038160919540229765,
+      "current_pct": 0.03724137931034479,
       "funding_at_entry": -8.0002871167e-05,
       "score": 100,
       "margin_tl": 100.0,
       "leverage": 3.0,
       "trail": 0.0020452499999999998
-    },
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "CAP-USDT-SWAP",
-      "side": "LONG",
-      "mode": "TREND",
-      "entry": 0.06003,
-      "entry_time": "2026-09-16T23:40:00.967166+00:00",
-      "stop": 0.05917942601731285,
-      "risk_pct": 0.014169148470550548,
-      "peak_pct": 0.015325670498084245,
-      "current_pct": 0.015325670498084245,
-      "funding_at_entry": 5e-05,
-      "score": 90,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.060444
     }
   ],
   "history": [
@@ -395,6 +378,29 @@
       "pnl_pct": -0.016433121019108272,
       "net_pnl": -5.349936305732482,
       "reason": "HARD_STOP"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "CAP-USDT-SWAP",
+      "side": "LONG",
+      "mode": "TREND",
+      "entry": 0.06003,
+      "entry_time": "2026-09-16T23:40:00.967166+00:00",
+      "stop": 0.05917942601731285,
+      "risk_pct": 0.014169148470550548,
+      "peak_pct": 0.015325670498084245,
+      "current_pct": -0.0014992503748125904,
+      "funding_at_entry": 5e-05,
+      "score": 90,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.060444,
+      "status": "CLOSED",
+      "exit": 0.05994,
+      "exit_time": "2026-09-17T01:13:14.102222+00:00",
+      "pnl_pct": -0.0014992503748125904,
+      "net_pnl": -0.8697751124437771,
+      "reason": "PROFIT_TRAIL"
     }
   ],
   "version": "ALPHA_REGIME_V1"
