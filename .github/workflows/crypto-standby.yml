@@ -4,13 +4,15 @@ on:
   repository_dispatch:
     types: [crypto_standby]
 
+# Only one standby workflow may execute at a time.
+# A queued duplicate is rejected by continuous_runner.py when its parent generation is stale.
+concurrency:
+  group: crypto-scanner-standby-singleton
+  cancel-in-progress: false
+
 permissions:
   contents: write
   actions: write
-
-concurrency:
-  group: crypto-scanner-standby-${{ github.event.client_payload.parent_run_id || github.run_id }}
-  cancel-in-progress: false
 
 jobs:
   standby:
@@ -20,6 +22,7 @@ jobs:
       RUNNER_ROLE: standby
       RUNNER_DURATION_MINUTES: ${{ github.event.client_payload.duration_minutes || '345' }}
       RUNNER_PREPARE_AT_MINUTES: ${{ github.event.client_payload.prepare_at_minutes || '335' }}
+      PARENT_GENERATION: ${{ github.event.client_payload.parent_generation || '' }}
       CHECKPOINT_SECONDS: "60"
       SCAN_SECONDS: "180"
       STANDBY_POLL_SECONDS: "10"
@@ -55,5 +58,6 @@ jobs:
           echo "role=$RUNNER_ROLE"
           echo "duration=$RUNNER_DURATION_MINUTES"
           echo "prepare_at=$RUNNER_PREPARE_AT_MINUTES"
+          echo "parent_generation=$PARENT_GENERATION"
           test ! -f data/runner_state.json || cat data/runner_state.json
           git status --short
