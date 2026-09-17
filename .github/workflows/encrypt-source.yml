@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+  schedule:
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
@@ -17,10 +19,29 @@ jobs:
       CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether plaintext source remains
+        id: migration_check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' | grep -q .; then
+            echo 'MIGRATE=true' >> "$GITHUB_ENV"
+            echo 'Plaintext Python source detected; migration required.'
+          else
+            echo 'MIGRATE=false' >> "$GITHUB_ENV"
+            echo 'Source already encrypted; nothing to migrate.'
+          fi
+
       - name: Let the active runner checkpoint once more
+        if: env.MIGRATE == 'true'
         run: sleep 70
 
       - name: Stop old plaintext engine before changing source layout
+        if: env.MIGRATE == 'true'
         run: |
           set -euo pipefail
           runs=$(gh run list -R skunars/crypto-scanner --workflow crypto-continuous.yml --status in_progress --json databaseId --jq '.[].databaseId')
@@ -29,14 +50,12 @@ jobs:
           done
           sleep 10
 
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Verify key
+        if: env.MIGRATE == 'true'
         run: test -n "$CODE_DECRYPTION_KEY"
 
       - name: Patch runner for encrypted runtime
+        if: env.MIGRATE == 'true'
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -51,6 +70,7 @@ jobs:
           PY
 
       - name: Encrypt Python source only
+        if: env.MIGRATE == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -60,12 +80,12 @@ jobs:
           done < <(find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' -print0)
 
       - name: Commit encrypted source only
+        if: env.MIGRATE == 'true'
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add '*.py' '*.py.enc' 2>/dev/null || true
-          git add -u -- '*.py'
+          git add -A -- '*.py' '*.py.enc'
           if git diff --cached --quiet; then
             echo 'No source migration changes to commit.'
             exit 0
@@ -74,4 +94,5 @@ jobs:
           git push origin HEAD:main
 
       - name: Start fresh encrypted production runner
+        if: env.MIGRATE == 'true'
         run: gh workflow run crypto-continuous.yml --repo skunars/crypto-scanner -f role=active -f duration_minutes=345 -f prepare_at_minutes=335
