@@ -1,14 +1,14 @@
 {
   "version": 1,
   "role": "active",
-  "status": "running",
+  "status": "handoff_ready",
   "generation": 1,
   "started_at": "2026-09-17T18:17:01.332360+00:00",
   "last_checkpoint_at": "2026-09-17T18:21:44.526259+00:00",
   "last_scan_at": "2026-09-17T18:21:44.526240+00:00",
-  "handoff_count": 1,
+  "handoff_count": 2,
   "error": null,
   "cycle": 8,
   "standby_dispatched_at": "2026-09-17T18:20:03.830239+00:00",
-  "handoff_ready_at": "2026-09-17T18:16:49.949244+00:00"
+  "handoff_ready_at": "2026-09-17T18:22:02.152402+00:00"
 }
