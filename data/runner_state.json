@@ -1,16 +1,16 @@
 {
   "version": 1,
   "role": "active",
-  "status": "standby_dispatched",
+  "status": "running",
   "generation": 8,
-  "started_at": "2026-09-17T19:06:32.546427+00:00",
-  "last_checkpoint_at": "2026-09-17T19:09:48.017716+00:00",
-  "last_scan_at": "2026-09-17T19:07:39.661102+00:00",
+  "started_at": "2026-09-17T19:06:34.620255+00:00",
+  "last_checkpoint_at": "2026-09-17T19:11:01.961735+00:00",
+  "last_scan_at": "2026-09-17T19:11:01.961716+00:00",
   "handoff_count": 8,
   "error": null,
-  "cycle": 21,
-  "standby_dispatched_at": "2026-09-17T19:09:33.728378+00:00",
-  "handoff_ready_at": "2026-09-17T19:06:28.759814+00:00",
+  "cycle": 22,
+  "standby_dispatched_at": "2026-09-17T19:09:35.097069+00:00",
+  "handoff_ready_at": "2026-09-17T19:06:29.950078+00:00",
   "active_minutes": 5,
   "prepare_at_minutes": 3
 }
