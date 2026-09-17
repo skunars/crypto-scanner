@@ -4,11 +4,11 @@
   "status": "running",
   "generation": 1,
   "started_at": "2026-09-17T18:17:01.332360+00:00",
-  "last_checkpoint_at": "2026-09-17T18:17:03.115308+00:00",
-  "last_scan_at": "2026-09-17T18:14:28.484084+00:00",
+  "last_checkpoint_at": "2026-09-17T18:18:06.305602+00:00",
+  "last_scan_at": "2026-09-17T18:18:06.305586+00:00",
   "handoff_count": 1,
   "error": null,
-  "cycle": 6,
+  "cycle": 7,
   "standby_dispatched_at": "2026-09-17T18:14:50.886029+00:00",
   "handoff_ready_at": "2026-09-17T18:16:49.949244+00:00"
 }
