@@ -4,7 +4,7 @@
   "status": "standby_dispatched",
   "generation": 1,
   "started_at": "2026-09-17T18:17:01.332360+00:00",
-  "last_checkpoint_at": "2026-09-17T18:19:07.858716+00:00",
+  "last_checkpoint_at": "2026-09-17T18:20:09.545539+00:00",
   "last_scan_at": "2026-09-17T18:18:06.305586+00:00",
   "handoff_count": 1,
   "error": null,
