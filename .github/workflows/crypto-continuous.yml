@@ -14,12 +14,12 @@ on:
       duration_minutes:
         description: Runner duration
         required: false
-        default: "5"
+        default: "345"
         type: string
       prepare_at_minutes:
         description: Dispatch standby before handoff
         required: false
-        default: "3"
+        default: "335"
         type: string
 
 permissions:
@@ -36,8 +36,8 @@ jobs:
     timeout-minutes: 360
     env:
       RUNNER_ROLE: ${{ inputs.role || 'active' }}
-      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '5' }}
-      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || '3' }}
+      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '345' }}
+      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || '335' }}
       CHECKPOINT_SECONDS: "60"
       SCAN_SECONDS: "180"
       STANDBY_POLL_SECONDS: "10"
