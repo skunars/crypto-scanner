@@ -11,6 +11,7 @@ SCAN_SECONDS = int(os.getenv("SCAN_SECONDS", "180"))
 CHECKPOINT_SECONDS = int(os.getenv("CHECKPOINT_SECONDS", "60"))
 POLL_SECONDS = int(os.getenv("STANDBY_POLL_SECONDS", "10"))
 ROLE = os.getenv("RUNNER_ROLE", "active").lower()
+PARENT_GENERATION = os.getenv("PARENT_GENERATION", "")
 STATE_FILE = "data/runner_state.json"
 PAPER_FILE = "paper_trades.json"
 
@@ -107,9 +108,10 @@ def dispatch_standby():
     repo = os.getenv("GITHUB_REPOSITORY", "skunars/crypto-scanner")
     if not token:
         raise RuntimeError("GITHUB_TOKEN/GH_TOKEN bulunamadı")
+    state = load_state()
     payload = json.dumps({"event_type": "crypto_standby", "client_payload": {
         "duration_minutes": str(ACTIVE_MINUTES), "prepare_at_minutes": str(PREPARE_AT_MINUTES),
-        "parent_run_id": os.getenv("GITHUB_RUN_ID", ""), "parent_generation": int(load_state().get("generation", 0))
+        "parent_run_id": os.getenv("GITHUB_RUN_ID", ""), "parent_generation": int(state.get("generation", 0))
     }}).encode()
     req = urllib.request.Request(f"https://api.github.com/repos/{repo}/dispatches", data=payload,
         headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}",
@@ -172,12 +174,23 @@ def active():
 
 def standby():
     telegram("CRYPTO SCANNER\nSTANDBY B hazır bekliyor.")
+    parent_generation = int(PARENT_GENERATION) if PARENT_GENERATION.strip() else None
     deadline = time.monotonic() + (ACTIVE_MINUTES * 60) + 900
     while time.monotonic() < deadline:
         try:
             sync_main(); state = load_state()
             if state.get("status") == "handoff_ready":
-                telegram("CRYPTO SCANNER\nB son state'i aldı, takeover başlıyor."); active(); return
+                current_generation = int(state.get("generation", 0))
+                if parent_generation is not None and current_generation != parent_generation:
+                    print(f"Stale standby event ignored: parent_generation={parent_generation}, current_generation={current_generation}")
+                    telegram(f"CRYPTO SCANNER\nSTALE STANDBY ignored | parent_generation={parent_generation} | current={current_generation}")
+                    return
+                state["status"] = "takeover_claimed"
+                state["takeover_claimed_at"] = now()
+                state["takeover_run_id"] = os.getenv("GITHUB_RUN_ID", "")
+                checkpoint(state)
+                telegram(f"CRYPTO SCANNER\nB son state'i aldı, takeover başlıyor | generation={current_generation}")
+                active(); return
         except Exception as exc:
             print(f"Standby polling error: {exc}")
         time.sleep(POLL_SECONDS)
