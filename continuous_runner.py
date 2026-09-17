@@ -112,20 +112,29 @@ def checkpoint(state):
 
 
 def dispatch_standby():
+    """Start the next standby runner through repository_dispatch.
+
+    repository_dispatch is intentionally used instead of workflow_dispatch here:
+    GitHub documents repository_dispatch as an exception that can create a new
+    workflow run even when the request is authenticated with GITHUB_TOKEN.
+    """
     token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN")
     repo = os.getenv("GITHUB_REPOSITORY", "skunars/crypto-scanner")
     if not token:
         raise RuntimeError("GITHUB_TOKEN/GH_TOKEN bulunamadı")
+
     payload = json.dumps({
-        "ref": "main",
-        "inputs": {
-            "role": "standby",
+        "event_type": "crypto_standby",
+        "client_payload": {
             "duration_minutes": str(ACTIVE_MINUTES),
             "prepare_at_minutes": str(PREPARE_AT_MINUTES),
+            "parent_run_id": os.getenv("GITHUB_RUN_ID", ""),
+            "parent_generation": int(load_state().get("generation", 0)),
         },
     }).encode()
+
     req = urllib.request.Request(
-        f"https://api.github.com/repos/{repo}/actions/workflows/crypto-continuous.yml/dispatches",
+        f"https://api.github.com/repos/{repo}/dispatches",
         data=payload,
         headers={
             "Accept": "application/vnd.github+json",
@@ -137,7 +146,7 @@ def dispatch_standby():
     )
     with urllib.request.urlopen(req, timeout=15) as response:
         if response.status not in (200, 201, 204):
-            raise RuntimeError(f"Standby dispatch HTTP {response.status}")
+            raise RuntimeError(f"Standby repository_dispatch HTTP {response.status}")
 
 
 def sync_main():
@@ -169,6 +178,8 @@ def active():
         "role": "active",
         "status": "running",
         "generation": generation,
+        "active_minutes": ACTIVE_MINUTES,
+        "prepare_at_minutes": PREPARE_AT_MINUTES,
         "started_at": now(),
         "last_checkpoint_at": now(),
         "last_scan_at": state.get("last_scan_at"),
