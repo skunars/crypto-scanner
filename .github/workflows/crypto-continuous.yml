@@ -12,14 +12,14 @@ on:
           - active
           - standby
       duration_minutes:
-        description: Active runner duration
+        description: Test runner duration
         required: false
-        default: "345"
+        default: "5"
         type: string
       prepare_at_minutes:
         description: Dispatch standby before handoff
         required: false
-        default: "335"
+        default: "3"
         type: string
 
 permissions:
@@ -33,11 +33,11 @@ concurrency:
 jobs:
   continuous:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 15
     env:
       RUNNER_ROLE: ${{ inputs.role || 'active' }}
-      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '345' }}
-      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || '335' }}
+      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '5' }}
+      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || '3' }}
       CHECKPOINT_SECONDS: "60"
       SCAN_SECONDS: "180"
       STANDBY_POLL_SECONDS: "10"
@@ -71,5 +71,7 @@ jobs:
         if: always()
         run: |
           echo "role=$RUNNER_ROLE"
+          echo "duration=$RUNNER_DURATION_MINUTES"
+          echo "prepare_at=$RUNNER_PREPARE_AT_MINUTES"
           test ! -f data/runner_state.json || cat data/runner_state.json
           git status --short
