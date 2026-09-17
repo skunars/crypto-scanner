@@ -1,24 +1,6 @@
 {
-  "equity": 976.4007387820006,
-  "positions": [
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "RVN-USDT-SWAP",
-      "side": "SHORT",
-      "mode": "TREND",
-      "entry": 0.002175,
-      "entry_time": "2026-09-15T05:29:26.829916+00:00",
-      "stop": 0.0022010999999999997,
-      "risk_pct": 0.012,
-      "peak_pct": 0.07954022988505746,
-      "current_pct": 0.03724137931034479,
-      "funding_at_entry": -8.0002871167e-05,
-      "score": 100,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.0020452499999999998
-    }
-  ],
+  "equity": 985.9117732647593,
+  "positions": [],
   "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -400,6 +382,29 @@
       "exit_time": "2026-09-17T01:13:14.102222+00:00",
       "pnl_pct": -0.0014992503748125904,
       "net_pnl": -0.8697751124437771,
+      "reason": "PROFIT_TRAIL"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "RVN-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "TREND",
+      "entry": 0.002175,
+      "entry_time": "2026-09-15T05:29:26.829916+00:00",
+      "stop": 0.0022010999999999997,
+      "risk_pct": 0.012,
+      "peak_pct": 0.07954022988505746,
+      "current_pct": 0.03310344827586208,
+      "funding_at_entry": -8.0002871167e-05,
+      "score": 100,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.00209715,
+      "status": "CLOSED",
+      "exit": 0.002103,
+      "exit_time": "2026-09-17T01:29:13.672533+00:00",
+      "pnl_pct": 0.03310344827586208,
+      "net_pnl": 9.511034482758623,
       "reason": "PROFIT_TRAIL"
     }
   ],
