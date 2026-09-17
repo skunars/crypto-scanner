@@ -25,7 +25,7 @@ jobs:
           set -euo pipefail
           runs=$(gh run list -R skunars/crypto-scanner --workflow crypto-continuous.yml --status in_progress --json databaseId --jq '.[].databaseId')
           for run in $runs; do
-            gh run cancel "$run" -R skunars/crypto-scanner --force || true
+            gh run cancel "$run" --repo skunars/crypto-scanner --force || true
           done
           sleep 10
 
@@ -50,7 +50,7 @@ jobs:
           p.write_text(s.replace(old, new))
           PY
 
-      - name: Encrypt Python source
+      - name: Encrypt Python source only
         shell: bash
         run: |
           set -euo pipefail
@@ -59,75 +59,19 @@ jobs:
             rm -f "$src"
           done < <(find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' -print0)
 
-      - name: Enable encrypted bootstrap in production workflow
+      - name: Commit encrypted source only
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path(".github/workflows/crypto-continuous.yml")
-          s = p.read_text()
-          marker = '      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}'
-          if 'CODE_DECRYPTION_KEY:' not in s:
-              s = s.replace(marker, marker + '\n      CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}')
-          s = s.replace('      - name: Run continuous engine\n        run: python continuous_runner.py', '      - name: Run encrypted continuous engine\n        run: python secure_bootstrap.py')
-          p.write_text(s)
-          PY
-
-      - name: Replace smoke workflow with encrypted validation
-        run: |
-          cat > .github/workflows/continuous-smoke.yml <<'EOF'
-          name: Continuous Runner Smoke Test
-
-          on:
-            push:
-              branches: [main]
-            workflow_dispatch:
-
-          permissions:
-            contents: read
-
-          jobs:
-            smoke:
-              runs-on: ubuntu-latest
-              timeout-minutes: 10
-              env:
-                CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
-              steps:
-                - uses: actions/checkout@v4
-                - name: Validate encrypted payload
-                  run: |
-                    set -euo pipefail
-                    test -n "$CODE_DECRYPTION_KEY"
-                    test -f secure_bootstrap.py
-                    test -f continuous_runner.py.enc
-                    test -f scanner_v2.py.enc
-                    test ! -f continuous_runner.py
-                    test ! -f scanner_v2.py
-                    mkdir -p /dev/shm/crypto-smoke
-                    openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in continuous_runner.py.enc -out /dev/shm/crypto-smoke/continuous_runner.py -pass env:CODE_DECRYPTION_KEY
-                    openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in scanner_v2.py.enc -out /dev/shm/crypto-smoke/scanner_v2.py -pass env:CODE_DECRYPTION_KEY
-                    python -m py_compile /dev/shm/crypto-smoke/continuous_runner.py /dev/shm/crypto-smoke/scanner_v2.py
-                    grep -q '345' /dev/shm/crypto-smoke/continuous_runner.py
-                    grep -q '335' /dev/shm/crypto-smoke/continuous_runner.py
-                    echo 'encrypted source validation OK'
-          EOF
-
-      - name: Commit encrypted migration
-        run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Encrypt Python source and enable runtime bootstrap'
-          git push --force-with-lease origin HEAD:main
+          git add '*.py' '*.py.enc' 2>/dev/null || true
+          git add -u -- '*.py'
+          if git diff --cached --quiet; then
+            echo 'No source migration changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Encrypt Python source for runtime decryption'
+          git push origin HEAD:main
 
       - name: Start fresh encrypted production runner
-        run: gh workflow run crypto-continuous.yml -R skunars/crypto-scanner -f role=active -f duration_minutes=345 -f prepare_at_minutes=335
-
-      - name: Remove one-time migration workflow
-        run: |
-          git fetch origin main
-          git reset --hard origin/main
-          git rm .github/workflows/encrypt-source.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Remove one-time encryption workflow'
-          git push origin HEAD:main
+        run: gh workflow run crypto-continuous.yml --repo skunars/crypto-scanner -f role=active -f duration_minutes=345 -f prepare_at_minutes=335
