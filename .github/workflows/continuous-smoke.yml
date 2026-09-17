@@ -1,0 +1,39 @@
+name: Continuous Runner Smoke Test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compile scanner and runner
+        run: python -m py_compile scanner_v2.py continuous_runner.py
+
+      - name: Validate runner defaults
+        run: |
+          python - <<'PY'
+          import continuous_runner as r
+          assert r.ACTIVE_MINUTES == 345
+          assert r.PREPARE_AT_MINUTES == 335
+          assert r.SCAN_SECONDS == 180
+          assert r.CHECKPOINT_SECONDS == 60
+          print("runner defaults OK")
+          PY
