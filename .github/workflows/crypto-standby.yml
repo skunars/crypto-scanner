@@ -52,6 +52,36 @@ jobs:
       - name: Run standby engine
         run: python continuous_runner.py
 
+      - name: Record runner history
+        if: always()
+        continue-on-error: true
+        run: |
+          python runner_history.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/runner_history.jsonl
+          if git diff --cached --quiet; then
+            echo "No new runner history record"
+            exit 0
+          fi
+          git commit -m "Record continuous runner history"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push conflict; refreshing main (attempt $attempt)"
+            git fetch origin main
+            git reset --hard origin/main
+            python runner_history.py
+            git add data/runner_history.jsonl
+            if git diff --cached --quiet; then
+              exit 0
+            fi
+            git commit -m "Record continuous runner history"
+          done
+          echo "History push failed after retries"
+          exit 1
+
       - name: Final diagnostics
         if: always()
         run: |
@@ -60,4 +90,5 @@ jobs:
           echo "prepare_at=$RUNNER_PREPARE_AT_MINUTES"
           echo "parent_generation=$PARENT_GENERATION"
           test ! -f data/runner_state.json || cat data/runner_state.json
+          test ! -f data/runner_history.jsonl || tail -n 5 data/runner_history.jsonl
           git status --short
