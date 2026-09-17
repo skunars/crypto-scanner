@@ -1,0 +1,75 @@
+name: Crypto Scanner Continuous A-B
+
+on:
+  workflow_dispatch:
+    inputs:
+      role:
+        description: Runner role
+        required: true
+        default: active
+        type: choice
+        options:
+          - active
+          - standby
+      duration_minutes:
+        description: Active runner duration
+        required: false
+        default: "345"
+        type: string
+      prepare_at_minutes:
+        description: Dispatch standby before handoff
+        required: false
+        default: "335"
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: crypto-scanner-${{ inputs.role || 'active' }}
+  cancel-in-progress: false
+
+jobs:
+  continuous:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      RUNNER_ROLE: ${{ inputs.role || 'active' }}
+      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '345' }}
+      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || '335' }}
+      CHECKPOINT_SECONDS: "60"
+      SCAN_SECONDS: "180"
+      STANDBY_POLL_SECONDS: "10"
+      GH_TOKEN: ${{ github.token }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run continuous engine
+        run: python continuous_runner.py
+
+      - name: Final diagnostics
+        if: always()
+        run: |
+          echo "role=$RUNNER_ROLE"
+          test ! -f data/runner_state.json || cat data/runner_state.json
+          git status --short
