@@ -12,7 +12,7 @@ on:
           - active
           - standby
       duration_minutes:
-        description: Test runner duration
+        description: Runner duration
         required: false
         default: "5"
         type: string
@@ -33,7 +33,7 @@ concurrency:
 jobs:
   continuous:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 360
     env:
       RUNNER_ROLE: ${{ inputs.role || 'active' }}
       RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '5' }}
