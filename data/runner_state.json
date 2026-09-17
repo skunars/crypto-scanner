@@ -1,7 +1,7 @@
 {
   "version": 1,
   "role": "active",
-  "status": "handoff_ready",
+  "status": "takeover_claimed",
   "generation": 8,
   "started_at": "2026-09-17T19:06:34.620255+00:00",
   "last_checkpoint_at": "2026-09-17T19:11:01.961735+00:00",
@@ -12,5 +12,7 @@
   "standby_dispatched_at": "2026-09-17T19:09:35.097069+00:00",
   "handoff_ready_at": "2026-09-17T19:11:34.917017+00:00",
   "active_minutes": 5,
-  "prepare_at_minutes": 3
+  "prepare_at_minutes": 3,
+  "takeover_claimed_at": "2026-09-17T19:11:45.141970+00:00",
+  "takeover_run_id": "35263205174"
 }
