@@ -12,6 +12,7 @@ CHECKPOINT_SECONDS = int(os.getenv("CHECKPOINT_SECONDS", "60"))
 POLL_SECONDS = int(os.getenv("STANDBY_POLL_SECONDS", "10"))
 ROLE = os.getenv("RUNNER_ROLE", "active").lower()
 STATE_FILE = "data/runner_state.json"
+PAPER_FILE = "paper_trades.json"
 
 
 def now():
@@ -38,13 +39,18 @@ def telegram(text):
         return False
 
 
-def load_state():
+def load_json(path, default):
     try:
-        with open(STATE_FILE, "r", encoding="utf-8") as handle:
+        with open(path, "r", encoding="utf-8") as handle:
             value = json.load(handle)
-            return value if isinstance(value, dict) else {}
+            return value
     except Exception:
-        return {}
+        return default
+
+
+def load_state():
+    value = load_json(STATE_FILE, {})
+    return value if isinstance(value, dict) else {}
 
 
 def save_state(state):
@@ -53,6 +59,37 @@ def save_state(state):
     with open(tmp, "w", encoding="utf-8") as handle:
         json.dump(state, handle, ensure_ascii=False, indent=2)
     os.replace(tmp, STATE_FILE)
+
+
+def trade_snapshot():
+    trades = load_json(PAPER_FILE, [])
+    if not isinstance(trades, list):
+        return {}
+    snapshot = {}
+    for trade in trades:
+        if not isinstance(trade, dict):
+            continue
+        key = f"{trade.get('symbol')}|{trade.get('entry_time')}|{trade.get('side')}"
+        snapshot[key] = trade
+    return snapshot
+
+
+def notify_trade_changes(before, after):
+    for key, trade in after.items():
+        if key not in before and trade.get("status") == "OPEN":
+            telegram(
+                "CRYPTO SCANNER\n"
+                f"PAPER OPEN\n{trade.get('symbol')} | score={trade.get('last_score')} | "
+                f"entry={trade.get('entry_price')} | SL={trade.get('initial_sl')}"
+            )
+    for key, trade in after.items():
+        old = before.get(key, {})
+        if old.get("status") == "OPEN" and trade.get("status") == "CLOSED":
+            telegram(
+                "CRYPTO SCANNER\n"
+                f"PAPER CLOSE\n{trade.get('symbol')} | reason={trade.get('exit_reason')} | "
+                f"net={trade.get('net_pnl_tl', 0):.2f} TL"
+            )
 
 
 def git(*args, check=True):
@@ -102,9 +139,12 @@ def sync_main():
 
 
 def run_scan():
+    before = trade_snapshot()
     result = subprocess.run(["python", "scanner_v2.py"], text=True)
     if result.returncode != 0:
         raise RuntimeError(f"scanner_v2.py exit={result.returncode}")
+    after = trade_snapshot()
+    notify_trade_changes(before, after)
 
 
 def active():
@@ -166,7 +206,7 @@ def active():
                 checkpoint(state)
             except Exception as checkpoint_exc:
                 print(f"Checkpoint after error failed: {checkpoint_exc}")
-            telegram(f"CRYPTO SCANNER\nKRITIK HATA: {exc}")
+            telegram(f"CRYPTO SCANNER\nKRİTİK HATA: {exc}")
             raise
 
         time.sleep(1)
