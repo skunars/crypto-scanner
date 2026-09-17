@@ -16,20 +16,99 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Verify key
         run: test -n "$CODE_DECRYPTION_KEY"
+
+      - name: Patch runner for encrypted runtime
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("continuous_runner.py")
+          s = p.read_text()
+          s = s.replace("import subprocess\nimport time", "import subprocess\nimport sys\nimport time\nfrom pathlib import Path")
+          old = '    result = subprocess.run(["python", "scanner_v2.py"], text=True)'
+          new = '    runtime_source = os.getenv("RUNTIME_SOURCE_DIR")\n    scanner_path = str(Path(runtime_source) / "scanner_v2.py") if runtime_source else "scanner_v2.py"\n    result = subprocess.run([sys.executable, scanner_path], text=True)'
+          if old not in s:
+              raise SystemExit("scanner launch pattern not found")
+          p.write_text(s.replace(old, new))
+          PY
+
       - name: Encrypt Python source
         shell: bash
         run: |
           set -euo pipefail
-          for src in $(find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' -print); do
+          while IFS= read -r -d '' src; do
             openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$src" -out "${src}.enc" -pass env:CODE_DECRYPTION_KEY
             rm -f "$src"
-          done
-      - name: Commit encrypted payload
+          done < <(find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' -print0)
+
+      - name: Enable encrypted bootstrap in production workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path(".github/workflows/crypto-continuous.yml")
+          s = p.read_text()
+          marker = '      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}'
+          if 'CODE_DECRYPTION_KEY:' not in s:
+              s = s.replace(marker, marker + '\n      CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}')
+          s = s.replace('      - name: Run continuous engine\n        run: python continuous_runner.py', '      - name: Run encrypted continuous engine\n        run: python secure_bootstrap.py')
+          p.write_text(s)
+          PY
+
+      - name: Replace smoke workflow with encrypted validation
+        run: |
+          cat > .github/workflows/continuous-smoke.yml <<'EOF'
+          name: Continuous Runner Smoke Test
+
+          on:
+            push:
+              branches: [main]
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+
+          jobs:
+            smoke:
+              runs-on: ubuntu-latest
+              timeout-minutes: 10
+              env:
+                CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
+              steps:
+                - uses: actions/checkout@v4
+                - name: Validate encrypted payload
+                  run: |
+                    set -euo pipefail
+                    test -n "$CODE_DECRYPTION_KEY"
+                    test -f secure_bootstrap.py
+                    test -f continuous_runner.py.enc
+                    test -f scanner_v2.py.enc
+                    test ! -f continuous_runner.py
+                    test ! -f scanner_v2.py
+                    mkdir -p /dev/shm/crypto-smoke
+                    openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in continuous_runner.py.enc -out /dev/shm/crypto-smoke/continuous_runner.py -pass env:CODE_DECRYPTION_KEY
+                    openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in scanner_v2.py.enc -out /dev/shm/crypto-smoke/scanner_v2.py -pass env:CODE_DECRYPTION_KEY
+                    python -m py_compile /dev/shm/crypto-smoke/continuous_runner.py /dev/shm/crypto-smoke/scanner_v2.py
+                    grep -q '345' /dev/shm/crypto-smoke/continuous_runner.py
+                    grep -q '335' /dev/shm/crypto-smoke/continuous_runner.py
+                    echo 'encrypted source validation OK'
+          EOF
+
+      - name: Commit encrypted migration
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'Encrypt Python source payload' || exit 0
+          git commit -m 'Encrypt Python source and enable runtime bootstrap'
+          git push origin HEAD:main
+
+      - name: Remove one-time migration workflow
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+          git rm .github/workflows/encrypt-source.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Remove one-time encryption workflow'
           git push origin HEAD:main
