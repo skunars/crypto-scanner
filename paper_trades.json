@@ -21446,9 +21446,9 @@
     "market_regime": "STRONG_TREND",
     "htf_score": 8,
     "htf_confirmed": false,
-    "peak_price": 53.7,
+    "peak_price": 53.71,
     "peak_pnl_pct": 0.01837270341207343,
-    "current_pnl_pct": 0.0067491563554555566,
+    "current_pnl_pct": 0.006936632920884841,
     "intratrade_snapshots": [
       {
         "timestamp": "2026-09-11T15:13:56.636621+00:00",
