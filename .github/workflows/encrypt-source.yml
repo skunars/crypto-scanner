@@ -1,0 +1,35 @@
+name: Encrypt source payload
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  encrypt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify key
+        run: test -n "$CODE_DECRYPTION_KEY"
+      - name: Encrypt Python source
+        shell: bash
+        run: |
+          set -euo pipefail
+          for src in $(find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' -print); do
+            openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$src" -out "${src}.enc" -pass env:CODE_DECRYPTION_KEY
+            rm -f "$src"
+          done
+      - name: Commit encrypted payload
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Encrypt Python source payload' || exit 0
+          git push origin HEAD:main
