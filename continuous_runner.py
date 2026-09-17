@@ -1,0 +1,202 @@
+import json
+import os
+import subprocess
+import time
+import urllib.request
+from datetime import datetime, timezone
+
+ACTIVE_MINUTES = int(os.getenv("RUNNER_DURATION_MINUTES", "345"))
+PREPARE_AT_MINUTES = int(os.getenv("RUNNER_PREPARE_AT_MINUTES", "335"))
+SCAN_SECONDS = int(os.getenv("SCAN_SECONDS", "180"))
+CHECKPOINT_SECONDS = int(os.getenv("CHECKPOINT_SECONDS", "60"))
+POLL_SECONDS = int(os.getenv("STANDBY_POLL_SECONDS", "10"))
+ROLE = os.getenv("RUNNER_ROLE", "active").lower()
+STATE_FILE = "data/runner_state.json"
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def telegram(text):
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return False
+    try:
+        body = json.dumps({"chat_id": chat_id, "text": text}).encode()
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=8) as response:
+            return 200 <= response.status < 300
+    except Exception as exc:
+        print(f"Telegram notification failed: {exc}")
+        return False
+
+
+def load_state():
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as handle:
+            value = json.load(handle)
+            return value if isinstance(value, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_state(state):
+    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+    tmp = STATE_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as handle:
+        json.dump(state, handle, ensure_ascii=False, indent=2)
+    os.replace(tmp, STATE_FILE)
+
+
+def git(*args, check=True):
+    return subprocess.run(["git", *args], text=True, capture_output=True, check=check)
+
+
+def checkpoint(state):
+    save_state(state)
+    git("config", "user.name", "github-actions[bot]")
+    git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+    git("add", "data/runner_state.json", "paper_trades.json")
+    staged = git("diff", "--cached", "--quiet", check=False)
+    if staged.returncode == 0:
+        return True
+    git("commit", "-m", f"Continuous scanner checkpoint: {state.get('cycle', 0)}")
+    git("fetch", "origin", "main")
+    git("rebase", "origin/main")
+    git("push", "origin", "HEAD:main")
+    return True
+
+
+def dispatch_standby():
+    token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN")
+    repo = os.getenv("GITHUB_REPOSITORY", "skunars/crypto-scanner")
+    if not token:
+        raise RuntimeError("GITHUB_TOKEN/GH_TOKEN bulunamadı")
+    payload = json.dumps({"ref": "main", "inputs": {"role": "standby"}}).encode()
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{repo}/actions/workflows/crypto-continuous.yml/dispatches",
+        data=payload,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+            "X-GitHub-Api-Version": "2026-03-10",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as response:
+        if response.status not in (200, 201, 204):
+            raise RuntimeError(f"Standby dispatch HTTP {response.status}")
+
+
+def sync_main():
+    git("fetch", "origin", "main")
+    git("reset", "--hard", "origin/main")
+
+
+def run_scan():
+    result = subprocess.run(["python", "scanner_v2.py"], text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"scanner_v2.py exit={result.returncode}")
+
+
+def active():
+    state = load_state()
+    generation = int(state.get("generation", 0)) + (1 if state.get("status") == "handoff_ready" else 0)
+    handoffs = int(state.get("handoff_count", 0))
+    started = time.monotonic()
+    last_scan = 0.0
+    last_checkpoint = 0.0
+    dispatched = False
+    cycle = int(state.get("cycle", 0))
+
+    state.update({
+        "version": 1,
+        "role": "active",
+        "status": "running",
+        "generation": generation,
+        "started_at": now(),
+        "last_checkpoint_at": now(),
+        "last_scan_at": state.get("last_scan_at"),
+        "handoff_count": handoffs,
+        "error": None,
+    })
+    checkpoint(state)
+    telegram(f"CRYPTO SCANNER\nACTIVE başladı | generation={generation}")
+
+    duration = ACTIVE_MINUTES * 60
+    prepare = min(PREPARE_AT_MINUTES * 60, duration - 30)
+
+    while time.monotonic() - started < duration:
+        elapsed = time.monotonic() - started
+        try:
+            if not dispatched and elapsed >= prepare:
+                dispatch_standby()
+                dispatched = True
+                state["status"] = "standby_dispatched"
+                state["standby_dispatched_at"] = now()
+                checkpoint(state)
+                telegram(f"CRYPTO SCANNER\nStandby B dispatch edildi | generation={generation}")
+
+            if time.monotonic() - last_scan >= SCAN_SECONDS:
+                run_scan()
+                last_scan = time.monotonic()
+                cycle += 1
+                state["cycle"] = cycle
+                state["last_scan_at"] = now()
+                state["status"] = "running"
+
+            if time.monotonic() - last_checkpoint >= CHECKPOINT_SECONDS:
+                state["last_checkpoint_at"] = now()
+                checkpoint(state)
+                last_checkpoint = time.monotonic()
+
+        except Exception as exc:
+            state["status"] = "error"
+            state["error"] = str(exc)
+            state["error_at"] = now()
+            try:
+                checkpoint(state)
+            except Exception as checkpoint_exc:
+                print(f"Checkpoint after error failed: {checkpoint_exc}")
+            telegram(f"CRYPTO SCANNER\nKRITIK HATA: {exc}")
+            raise
+
+        time.sleep(1)
+
+    state["status"] = "handoff_ready"
+    state["handoff_ready_at"] = now()
+    state["handoff_count"] = handoffs + 1
+    checkpoint(state)
+    telegram(f"CRYPTO SCANNER\nA→B HANDOFF HAZIR | generation={generation} | cycles={cycle}")
+
+
+def standby():
+    telegram("CRYPTO SCANNER\nSTANDBY B hazır bekliyor.")
+    deadline = time.monotonic() + (ACTIVE_MINUTES * 60) + 900
+    while time.monotonic() < deadline:
+        try:
+            sync_main()
+            state = load_state()
+            if state.get("status") == "handoff_ready":
+                telegram("CRYPTO SCANNER\nB son state'i aldı, takeover başlıyor.")
+                active()
+                return
+        except Exception as exc:
+            print(f"Standby polling error: {exc}")
+        time.sleep(POLL_SECONDS)
+    raise TimeoutError("Standby handoff_ready beklerken zaman aşımına uğradı")
+
+
+if __name__ == "__main__":
+    if ROLE == "standby":
+        standby()
+    else:
+        active()
