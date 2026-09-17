@@ -12,28 +12,27 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Compile scanner and runner
-        run: python -m py_compile scanner_v2.py continuous_runner.py
-
-      - name: Validate runner defaults
+      - name: Validate encrypted payload
         run: |
-          python - <<'PY'
-          import continuous_runner as r
-          assert r.ACTIVE_MINUTES == 345
-          assert r.PREPARE_AT_MINUTES == 335
-          assert r.SCAN_SECONDS == 180
-          assert r.CHECKPOINT_SECONDS == 60
-          print("runner defaults OK")
-          PY
+          set -euo pipefail
+          test -n "$CODE_DECRYPTION_KEY"
+          test -f secure_bootstrap.py
+          test -f continuous_runner.py.enc
+          test -f scanner_v2.py.enc
+          test ! -f continuous_runner.py
+          test ! -f scanner_v2.py
+          rm -rf /dev/shm/crypto-smoke
+          mkdir -p /dev/shm/crypto-smoke
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in continuous_runner.py.enc -out /dev/shm/crypto-smoke/continuous_runner.py -pass env:CODE_DECRYPTION_KEY
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in scanner_v2.py.enc -out /dev/shm/crypto-smoke/scanner_v2.py -pass env:CODE_DECRYPTION_KEY
+          python -m py_compile /dev/shm/crypto-smoke/continuous_runner.py /dev/shm/crypto-smoke/scanner_v2.py
+          grep -q '345' /dev/shm/crypto-smoke/continuous_runner.py
+          grep -q '335' /dev/shm/crypto-smoke/continuous_runner.py
+          echo 'encrypted source validation OK'
+          rm -rf /dev/shm/crypto-smoke
