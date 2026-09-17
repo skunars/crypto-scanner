@@ -1,10 +1,10 @@
 {
   "version": 1,
   "role": "active",
-  "status": "takeover_claimed",
+  "status": "running",
   "generation": 8,
-  "started_at": "2026-09-17T19:39:21.095089+00:00",
-  "last_checkpoint_at": "2026-09-17T19:44:15.568500+00:00",
+  "started_at": "2026-09-17T19:44:47.769147+00:00",
+  "last_checkpoint_at": "2026-09-17T19:44:47.769159+00:00",
   "last_scan_at": "2026-09-17T19:42:12.060247+00:00",
   "handoff_count": 14,
   "error": null,
