@@ -116,7 +116,14 @@ def dispatch_standby():
     repo = os.getenv("GITHUB_REPOSITORY", "skunars/crypto-scanner")
     if not token:
         raise RuntimeError("GITHUB_TOKEN/GH_TOKEN bulunamadı")
-    payload = json.dumps({"ref": "main", "inputs": {"role": "standby"}}).encode()
+    payload = json.dumps({
+        "ref": "main",
+        "inputs": {
+            "role": "standby",
+            "duration_minutes": str(ACTIVE_MINUTES),
+            "prepare_at_minutes": str(PREPARE_AT_MINUTES),
+        },
+    }).encode()
     req = urllib.request.Request(
         f"https://api.github.com/repos/{repo}/actions/workflows/crypto-continuous.yml/dispatches",
         data=payload,
