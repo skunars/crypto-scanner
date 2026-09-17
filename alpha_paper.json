@@ -1,24 +1,6 @@
 {
-  "equity": 984.8697911999327,
-  "positions": [
-    {
-      "strategy": "ALPHA_REGIME_V1",
-      "symbol": "GALA-USDT-SWAP",
-      "side": "SHORT",
-      "mode": "MEAN_REVERT",
-      "entry": 0.001876,
-      "entry_time": "2026-09-17T17:24:59.608293+00:00",
-      "stop": 0.0019104777371488186,
-      "risk_pct": 0.018378324706193258,
-      "peak_pct": 0.035181236673774034,
-      "current_pct": 0.015991471215351855,
-      "funding_at_entry": 0.0001,
-      "score": 75,
-      "margin_tl": 100.0,
-      "leverage": 3.0,
-      "trail": 0.0018463
-    }
-  ],
+  "equity": 987.328256018696,
+  "positions": [],
   "history": [
     {
       "strategy": "ALPHA_REGIME_V1",
@@ -468,6 +450,29 @@
       "exit_time": "2026-09-17T09:29:06.995382+00:00",
       "pnl_pct": 0.015689512799339434,
       "net_pnl": 4.2868538398018305,
+      "reason": "PROFIT_TRAIL"
+    },
+    {
+      "strategy": "ALPHA_REGIME_V1",
+      "symbol": "GALA-USDT-SWAP",
+      "side": "SHORT",
+      "mode": "MEAN_REVERT",
+      "entry": 0.001876,
+      "entry_time": "2026-09-17T17:24:59.608293+00:00",
+      "stop": 0.0019104777371488186,
+      "risk_pct": 0.018378324706193258,
+      "peak_pct": 0.035181236673774034,
+      "current_pct": 0.00959488272921109,
+      "funding_at_entry": 0.0001,
+      "score": 75,
+      "margin_tl": 100.0,
+      "leverage": 3.0,
+      "trail": 0.0018463,
+      "status": "CLOSED",
+      "exit": 0.001858,
+      "exit_time": "2026-09-17T19:10:37.238430+00:00",
+      "pnl_pct": 0.00959488272921109,
+      "net_pnl": 2.458464818763327,
       "reason": "PROFIT_TRAIL"
     }
   ],
