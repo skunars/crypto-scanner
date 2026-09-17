@@ -44,6 +44,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
 
     steps:
       - name: Checkout
@@ -64,8 +65,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run continuous engine
-        run: python continuous_runner.py
+      - name: Run encrypted continuous engine
+        run: python secure_bootstrap.py
 
       - name: Final diagnostics
         if: always()
