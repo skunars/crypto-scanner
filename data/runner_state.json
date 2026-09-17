@@ -1,18 +1,18 @@
 {
   "version": 1,
   "role": "active",
-  "status": "running",
+  "status": "stopped",
   "generation": 8,
-  "started_at": "2026-09-17T19:11:46.990246+00:00",
-  "last_checkpoint_at": "2026-09-17T19:11:48.729936+00:00",
+  "started_at": null,
+  "last_checkpoint_at": null,
   "last_scan_at": "2026-09-17T19:11:01.961716+00:00",
   "handoff_count": 9,
   "error": null,
   "cycle": 22,
-  "standby_dispatched_at": "2026-09-17T19:09:35.097069+00:00",
-  "handoff_ready_at": "2026-09-17T19:11:34.917017+00:00",
-  "active_minutes": 5,
-  "prepare_at_minutes": 3,
-  "takeover_claimed_at": "2026-09-17T19:11:45.141970+00:00",
-  "takeover_run_id": "35263205174"
+  "standby_dispatched_at": null,
+  "handoff_ready_at": null,
+  "active_minutes": 345,
+  "prepare_at_minutes": 335,
+  "takeover_claimed_at": null,
+  "takeover_run_id": null
 }
