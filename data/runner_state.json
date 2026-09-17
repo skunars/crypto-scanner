@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "role": "active",
+  "status": "running",
+  "generation": 0,
+  "started_at": "2026-09-17T17:49:49.371659+00:00",
+  "last_checkpoint_at": "2026-09-17T17:49:49.371670+00:00",
+  "last_scan_at": null,
+  "handoff_count": 0,
+  "error": null
+}
