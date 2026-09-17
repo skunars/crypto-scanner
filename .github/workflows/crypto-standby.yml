@@ -1,0 +1,59 @@
+name: Crypto Scanner Standby
+
+on:
+  repository_dispatch:
+    types: [crypto_standby]
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: crypto-scanner-standby-${{ github.event.client_payload.parent_run_id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  standby:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      RUNNER_ROLE: standby
+      RUNNER_DURATION_MINUTES: ${{ github.event.client_payload.duration_minutes || '345' }}
+      RUNNER_PREPARE_AT_MINUTES: ${{ github.event.client_payload.prepare_at_minutes || '335' }}
+      CHECKPOINT_SECONDS: "60"
+      SCAN_SECONDS: "180"
+      STANDBY_POLL_SECONDS: "10"
+      GH_TOKEN: ${{ github.token }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run standby engine
+        run: python continuous_runner.py
+
+      - name: Final diagnostics
+        if: always()
+        run: |
+          echo "role=$RUNNER_ROLE"
+          echo "duration=$RUNNER_DURATION_MINUTES"
+          echo "prepare_at=$RUNNER_PREPARE_AT_MINUTES"
+          test ! -f data/runner_state.json || cat data/runner_state.json
+          git status --short
