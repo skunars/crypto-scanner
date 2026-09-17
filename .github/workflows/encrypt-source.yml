@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   encrypt:
@@ -12,7 +13,20 @@ jobs:
     timeout-minutes: 15
     env:
       CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
+      GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Let the active runner checkpoint once more
+        run: sleep 70
+
+      - name: Stop old plaintext engine before changing source layout
+        run: |
+          set -euo pipefail
+          runs=$(gh run list -R skunars/crypto-scanner --workflow crypto-continuous.yml --status in_progress --json databaseId --jq '.[].databaseId')
+          for run in $runs; do
+            gh run cancel "$run" -R skunars/crypto-scanner --force || true
+          done
+          sleep 10
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -102,6 +116,9 @@ jobs:
           git add -A
           git commit -m 'Encrypt Python source and enable runtime bootstrap'
           git push origin HEAD:main
+
+      - name: Start fresh encrypted production runner
+        run: gh workflow run crypto-continuous.yml -R skunars/crypto-scanner -f role=active -f duration_minutes=345 -f prepare_at_minutes=335
 
       - name: Remove one-time migration workflow
         run: |
