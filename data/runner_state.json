@@ -1,10 +1,10 @@
 {
   "version": 1,
   "role": "active",
-  "status": "standby_dispatched",
+  "status": "running",
   "generation": 4,
-  "started_at": "2026-09-17T18:43:04.408141+00:00",
-  "last_checkpoint_at": "2026-09-17T18:45:40.422498+00:00",
+  "started_at": "2026-09-17T18:46:10.799696+00:00",
+  "last_checkpoint_at": "2026-09-17T18:46:10.799708+00:00",
   "last_scan_at": "2026-09-17T18:43:36.793438+00:00",
   "handoff_count": 4,
   "error": null,
