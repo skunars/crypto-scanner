@@ -1,0 +1,79 @@
+name: Crypto Scanner Health Monitor
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check runner state and Telegram health
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -u
+          STATE_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/runner_state.json"
+          export STATE="$(curl -fsSL --max-time 20 "$STATE_URL")"
+
+          python - <<'PY' > /tmp/state.env
+          import json, os, time
+          from datetime import datetime
+          s = json.loads(os.environ['STATE'])
+          latest = []
+          for key in ('last_scan_at', 'last_checkpoint_at'):
+              value = s.get(key)
+              if value:
+                  latest.append(datetime.fromisoformat(value.replace('Z','+00:00')).timestamp())
+          age = int(time.time() - max(latest)) if latest else 999999
+          print(f"STATUS={s.get('status','unknown')}")
+          print(f"ROLE={s.get('role','unknown')}")
+          print(f"CYCLE={s.get('cycle','?')}")
+          print(f"GENERATION={s.get('generation','?')}")
+          print(f"HANDOFF={s.get('handoff_count','?')}")
+          print(f"AGE={age}")
+          print(f"ERROR={s.get('error') or ''}")
+          PY
+
+          set -a
+          . /tmp/state.env
+          set +a
+
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "Telegram secrets are missing."
+            exit 1
+          fi
+
+          send() {
+            curl -fsS --max-time 20 -X POST \
+              "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+              --data-urlencode "text=$1"
+          }
+
+          if [ "$STATUS" = "running" ] && [ "$AGE" -le 600 ]; then
+            MSG="🟢 Crypto Scanner çalışıyor
+Rol: $ROLE
+Cycle: $CYCLE
+Generation: $GENERATION
+Handoff: $HANDOFF
+Son checkpoint/tarama: $AGE sn önce.
+A/B motoru canlı."
+            send "$MSG"
+          else
+            MSG="🔴 Crypto Scanner DURDU veya KİLİTLENDİ
+Durum: $STATUS
+Rol: $ROLE
+Cycle: $CYCLE
+Generation: $GENERATION
+Son güncelleme: $AGE sn önce.
+Hata: $ERROR
+Acil kontrol gerekiyor."
+            send "$MSG"
+            exit 1
+          fi
