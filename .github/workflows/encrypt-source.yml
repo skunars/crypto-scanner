@@ -2,12 +2,6 @@ name: Encrypt source payload
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-  issues:
-    types: [opened]
-  schedule:
-    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
