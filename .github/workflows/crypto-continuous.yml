@@ -71,25 +71,55 @@ jobs:
       - name: Telegram healthy start
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            MSG="🟢 Crypto Scanner çalışıyor\nRol: $RUNNER_ROLE\nRun: ${{ github.run_id }}\n345 dk A/B motoru aktif."
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=$MSG"
-          else
-            echo "Telegram secrets not configured; skipping notification."
+            MSG="🟢 Crypto Scanner çalışıyor\\nRol: $RUNNER_ROLE\\nRun: ${{ github.run_id }}\\n345 dk A/B motoru aktif."
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=$MSG"
           fi
 
-      - name: Run encrypted continuous engine with health heartbeat
+      - name: Monitor A-B handoff
         run: |
           set -u
           python secure_bootstrap.py &
           ENGINE_PID=$!
+          PREP_SENT=0
+          HANDOFF_SENT=0
           while kill -0 "$ENGINE_PID" 2>/dev/null; do
-            sleep 1800
-            if kill -0 "$ENGINE_PID" 2>/dev/null; then
-              if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-                MSG="🟢 Crypto Scanner hâlâ sağlıklı çalışıyor\nRol: $RUNNER_ROLE\nRun: ${{ github.run_id }}\nHeartbeat: 30 dk"
-                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"                   --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"                   --data-urlencode "text=$MSG" || true
+            if [ -f data/runner_state.json ]; then
+              if [ "$PREP_SENT" -eq 0 ] && python - <<'PY'
+import json
+try:
+    s=json.load(open("data/runner_state.json"))
+    raise SystemExit(0 if s.get("standby_dispatched_at") else 1)
+except Exception:
+    raise SystemExit(1)
+PY
+              then
+                if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+                  MSG="🔵 A hazırlandı\\nB runner geçiş için hazırlandı.\\nRun: ${{ github.run_id }}"
+                  curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                    --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+                fi
+                PREP_SENT=1
+              fi
+              if [ "$HANDOFF_SENT" -eq 0 ] && python - <<'PY'
+import json
+try:
+    s=json.load(open("data/runner_state.json"))
+    raise SystemExit(0 if s.get("takeover_claimed_at") else 1)
+except Exception:
+    raise SystemExit(1)
+PY
+              then
+                if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+                  MSG="🟢 A→B geçiş tamamlandı\\nYeni runner devraldı.\\nRun: ${{ github.run_id }}"
+                  curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                    --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+                fi
+                HANDOFF_SENT=1
               fi
             fi
+            sleep 10
           done
           wait "$ENGINE_PID"
 
@@ -98,10 +128,9 @@ jobs:
         continue-on-error: true
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            MSG="🔴 Crypto Scanner DURDU / HATA\nRol: $RUNNER_ROLE\nRun: ${{ github.run_id }}\nWorkflow: Crypto Scanner Continuous A-B"
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=$MSG" || true
-          else
-            echo "Telegram secrets not configured; failure notification skipped."
+            MSG="🔴 Crypto Scanner DURDU / HATA\\nRol: $RUNNER_ROLE\\nRun: ${{ github.run_id }}"
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
           fi
 
       - name: Record runner history
