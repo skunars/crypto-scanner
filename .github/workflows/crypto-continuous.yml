@@ -68,8 +68,41 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run encrypted continuous engine
-        run: python secure_bootstrap.py
+      - name: Telegram healthy start
+        run: |
+          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+            MSG="🟢 Crypto Scanner çalışıyor\nRol: $RUNNER_ROLE\nRun: ${{ github.run_id }}\n345 dk A/B motoru aktif."
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=$MSG"
+          else
+            echo "Telegram secrets not configured; skipping notification."
+          fi
+
+      - name: Run encrypted continuous engine with health heartbeat
+        run: |
+          set -u
+          python secure_bootstrap.py &
+          ENGINE_PID=$!
+          while kill -0 "$ENGINE_PID" 2>/dev/null; do
+            sleep 1800
+            if kill -0 "$ENGINE_PID" 2>/dev/null; then
+              if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+                MSG="🟢 Crypto Scanner hâlâ sağlıklı çalışıyor\nRol: $RUNNER_ROLE\nRun: ${{ github.run_id }}\nHeartbeat: 30 dk"
+                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"                   --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"                   --data-urlencode "text=$MSG" || true
+              fi
+            fi
+          done
+          wait "$ENGINE_PID"
+
+      - name: Telegram failure alert
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+            MSG="🔴 Crypto Scanner DURDU / HATA\nRol: $RUNNER_ROLE\nRun: ${{ github.run_id }}\nWorkflow: Crypto Scanner Continuous A-B"
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=$MSG" || true
+          else
+            echo "Telegram secrets not configured; failure notification skipped."
+          fi
 
       - name: Record runner history
         if: always()
