@@ -1,6 +1,8 @@
 name: Crypto Scanner Continuous A-B
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       role:
@@ -32,6 +34,7 @@ concurrency:
 
 jobs:
   continuous:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[START-345]')
     runs-on: ubuntu-latest
     timeout-minutes: 360
     env:
