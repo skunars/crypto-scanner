@@ -31,9 +31,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' | grep -q .; then
+          if find . -type f \( -name 'continuous_runner.py' -o -name 'scanner_v2.py' \) -not -path './.git/*' | grep -q .; then
             echo 'MIGRATE=true' >> "$GITHUB_ENV"
-            echo 'Plaintext Python source detected; migration required.'
+            echo 'Plaintext production runner/scanner detected; migration required.'
           else
             echo 'MIGRATE=false' >> "$GITHUB_ENV"
             echo 'Source already encrypted; nothing to migrate.'
@@ -59,28 +59,43 @@ jobs:
 
       - name: Patch runner for encrypted runtime
         if: env.MIGRATE == 'true'
+        shell: bash
         run: |
-          python - <<'PY'
+          set -euo pipefail
+          tmp=$(mktemp -d)
+          trap 'rm -rf "$tmp"' EXIT
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in continuous_runner.py.enc -out "$tmp/continuous_runner.py" -pass env:CODE_DECRYPTION_KEY
+          python - "$tmp/continuous_runner.py" <<'PY'
           from pathlib import Path
-          p = Path("continuous_runner.py")
+          import sys
+          p = Path(sys.argv[1])
           s = p.read_text()
-          s = s.replace("import subprocess\nimport time", "import subprocess\nimport sys\nimport time\nfrom pathlib import Path")
-          old = '    result = subprocess.run(["python", "scanner_v2.py"], text=True)'
-          new = '    runtime_source = os.getenv("RUNTIME_SOURCE_DIR")\n    scanner_path = str(Path(runtime_source) / "scanner_v2.py") if runtime_source else "scanner_v2.py"\n    result = subprocess.run([sys.executable, scanner_path], text=True)'
-          if old not in s:
+          old_import = "import subprocess\nimport time"
+          new_import = "import subprocess\nimport sys\nimport time\nfrom pathlib import Path"
+          old_launch = '    result = subprocess.run(["python", "scanner_v2.py"], text=True)'
+          new_launch = '    runtime_source = os.getenv("RUNTIME_SOURCE_DIR")\n    scanner_path = str(Path(runtime_source) / "scanner_v2.py") if runtime_source else "scanner_v2.py"\n    result = subprocess.run([sys.executable, scanner_path], text=True)'
+          if old_launch not in s:
+              if "RUNTIME_SOURCE_DIR" in s and "scanner_path" in s:
+                  print("Runner already patched; continuing.")
+                  raise SystemExit(0)
               raise SystemExit("scanner launch pattern not found")
-          p.write_text(s.replace(old, new))
+          s = s.replace(old_import, new_import).replace(old_launch, new_launch)
+          p.write_text(s)
           PY
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$tmp/continuous_runner.py" -out continuous_runner.py.enc.new -pass env:CODE_DECRYPTION_KEY
+          mv continuous_runner.py.enc.new continuous_runner.py.enc
 
       - name: Encrypt Python source only
         if: env.MIGRATE == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' src; do
-            openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$src" -out "${src}.enc" -pass env:CODE_DECRYPTION_KEY
-            rm -f "$src"
-          done < <(find . -type f -name '*.py' -not -path './secure_bootstrap.py' -not -path './.git/*' -print0)
+          for src in continuous_runner.py scanner_v2.py; do
+            if [ -f "$src" ]; then
+              openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$src" -out "${src}.enc" -pass env:CODE_DECRYPTION_KEY
+              rm -f "$src"
+            fi
+          done
 
       - name: Commit encrypted source only
         if: env.MIGRATE == 'true'
