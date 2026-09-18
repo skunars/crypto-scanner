@@ -80,11 +80,21 @@ jobs:
       - name: Monitor A-B handoff
         run: |
           set -u
-          python secure_bootstrap.py &
+          env TELEGRAM_BOT_TOKEN="" TELEGRAM_CHAT_ID="" python secure_bootstrap.py &
           ENGINE_PID=$!
           PREP_SENT=0
           HANDOFF_SENT=0
+          LAST_HEARTBEAT=$(date +%s)
           while kill -0 "$ENGINE_PID" 2>/dev/null; do
+            NOW=$(date +%s)
+            if [ $((NOW - LAST_HEARTBEAT)) -ge 1800 ]; then
+              if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+                MSG="🟢 Crypto Scanner çalışıyor\\nRol: $RUNNER_ROLE\\nRun: ${{ github.run_id }}\\nMotor hâlâ aktif."
+                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                  --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+              fi
+              LAST_HEARTBEAT=$NOW
+            fi
             if [ -f data/runner_state.json ]; then
               if python - <<'PY'
 import json, time
