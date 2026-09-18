@@ -86,6 +86,30 @@ jobs:
           HANDOFF_SENT=0
           while kill -0 "$ENGINE_PID" 2>/dev/null; do
             if [ -f data/runner_state.json ]; then
+              if python - <<'PY'
+import json, time
+from datetime import datetime, timezone
+try:
+    s=json.load(open("data/runner_state.json"))
+    vals=[]
+    for k in ("last_scan_at","last_checkpoint_at"):
+        v=s.get(k)
+        if v:
+            vals.append(datetime.fromisoformat(v.replace("Z","+00:00")).timestamp())
+    raise SystemExit(0 if vals and time.time()-max(vals) > 600 else 1)
+except Exception:
+    raise SystemExit(1)
+PY
+              then
+                echo "Scanner state is stale for more than 10 minutes."
+                if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+                  MSG="🟠 Crypto Scanner KİLİTLENMİŞ OLABİLİR\\nTarama/checkpoint 10 dakikadan uzun süredir güncellenmiyor.\\nRol: $RUNNER_ROLE\\nRun: ${{ github.run_id }}\\nLütfen kontrol et."
+                  curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                    --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+                fi
+                kill "$ENGINE_PID" 2>/dev/null || true
+                exit 1
+              fi
               if [ "$PREP_SENT" -eq 0 ] && python - <<'PY'
 import json
 try:
