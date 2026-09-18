@@ -50,8 +50,50 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run encrypted standby engine
-        run: python secure_bootstrap.py
+      - name: Telegram standby ready
+        run: |
+          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+            MSG="🔵 B hazır\\nStandby runner beklemede ve geçişi bekliyor."
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+          fi
+
+      - name: Run encrypted standby engine with handoff alert
+        run: |
+          set -u
+          python secure_bootstrap.py &
+          ENGINE_PID=$!
+          HANDOFF_SENT=0
+          while kill -0 "$ENGINE_PID" 2>/dev/null; do
+            if [ "$HANDOFF_SENT" -eq 0 ] && [ -f data/runner_state.json ] && python - <<'PY'
+import json
+try:
+    s=json.load(open("data/runner_state.json"))
+    raise SystemExit(0 if s.get("takeover_claimed_at") else 1)
+except Exception:
+    raise SystemExit(1)
+PY
+            then
+              if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+                MSG="🟢 A→B geçiş tamamlandı\\nB runner devraldı."
+                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                  --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+              fi
+              HANDOFF_SENT=1
+            fi
+            sleep 10
+          done
+          wait "$ENGINE_PID"
+
+      - name: Telegram failure alert
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+            MSG="🔴 Crypto Scanner DURDU / HATA\\nRol: $RUNNER_ROLE"
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+          fi
 
       - name: Record runner history
         if: always()
