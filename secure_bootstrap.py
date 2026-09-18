@@ -31,6 +31,19 @@ try:
     runner = runtime / "continuous_runner.py"
     if not runner.is_file():
         raise SystemExit("Encrypted continuous_runner.py payload is missing")
+
+    # The production payload is encrypted at rest. Patch only the decrypted
+    # runtime copy so the runner launches the decrypted scanner from /dev/shm.
+    runner_text = runner.read_text()
+    old_import = "import subprocess\\nimport time"
+    new_import = "import subprocess\\nimport sys\\nimport time\\nfrom pathlib import Path"
+    old_launch = '    result = subprocess.run(["python", "scanner_v2.py"], text=True)'
+    new_launch = '    runtime_source = os.getenv("RUNTIME_SOURCE_DIR")\\n    scanner_path = str(Path(runtime_source) / "scanner_v2.py") if runtime_source else "scanner_v2.py"\\n    result = subprocess.run([sys.executable, scanner_path], text=True)'
+    if old_launch in runner_text:
+        runner_text = runner_text.replace(old_import, new_import).replace(old_launch, new_launch)
+        runner.write_text(runner_text)
+    elif "RUNTIME_SOURCE_DIR" not in runner_text or "scanner_path" not in runner_text:
+        raise SystemExit("Encrypted continuous runner has an unknown scanner launch pattern")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(runtime)
     result = subprocess.run([sys.executable, str(runner)], cwd=repo, env=env)
