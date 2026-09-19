@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   launch:
@@ -14,11 +15,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.CRYPTO_SCANNER_PAT }}
         run: |
-          gh api --method POST \
-            -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/dispatches \
-            -f event_type=crypto-continuous-start \
-            -f client_payload[role]=active \
-            -f client_payload[duration_minutes]=345 \
-            -f client_payload[prepare_at_minutes]=335
-          echo "A runner dispatch gönderildi."
+          set -euo pipefail
+          gh workflow run crypto-scanner-continuous-ab.yml \
+            --ref main \
+            -f role=active \
+            -f duration_minutes=345 \
+            -f prepare_at_minutes=335
+          echo "A runner workflow_dispatch ile başlatma isteği gönderildi."
