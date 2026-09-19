@@ -2,7 +2,8 @@ name: Crypto Scanner Standby
 
 on:
   repository_dispatch:
-    types: [crypto_standby]
+    types:
+      - crypto_standby
 
 permissions:
   contents: write
@@ -12,24 +13,9 @@ jobs:
   standby:
     runs-on: ubuntu-latest
     timeout-minutes: 360
-    env:
-      RUNNER_ROLE: standby
-      RUNNER_DURATION_MINUTES: ${{ github.event.client_payload.duration_minutes || '345' }}
-      RUNNER_PREPARE_AT_MINUTES: ${{ github.event.client_payload.prepare_at_minutes || '335' }}
-      PARENT_GENERATION: ${{ github.event.client_payload.parent_generation || '' }}
-      CHECKPOINT_SECONDS: "60"
-      SCAN_SECONDS: "180"
-      STANDBY_POLL_SECONDS: "10"
-      GH_TOKEN: ${{ secrets.CRYPTO_SCANNER_PAT }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -39,33 +25,34 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Telegram standby start
-        run: |
-          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=🔵 Crypto Scanner B standby başladı."
-          fi
-
-      - name: Run encrypted standby engine
+      - name: Run standby engine
+        env:
+          RUNNER_ROLE: standby
+          RUNNER_DURATION_MINUTES: "345"
+          RUNNER_PREPARE_AT_MINUTES: "335"
+          CHECKPOINT_SECONDS: "60"
+          SCAN_SECONDS: "180"
+          STANDBY_POLL_SECONDS: "10"
+          GH_TOKEN: ${{ secrets.CRYPTO_SCANNER_PAT }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
         run: python secure_bootstrap.py
 
-      - name: Dispatch next active runner
+      - name: Start next A runner
         if: success()
+        env:
+          GH_TOKEN: ${{ secrets.CRYPTO_SCANNER_PAT }}
         run: |
           set -euo pipefail
           gh workflow run crypto-scanner-continuous-ab.yml             --repo "${{ github.repository }}"             --ref main             -f role=active             -f duration_minutes=345             -f prepare_at_minutes=335
-          echo "Next A runner dispatched."
 
-      - name: Telegram handoff alert
-        if: success()
-        continue-on-error: true
-        run: |
-          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=🔁 B→A geçiş başlatıldı."
-          fi
-
-      - name: Telegram failure alert
+      - name: Failure alert
         if: failure()
         continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
             curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=🔴 Crypto Scanner B durdu / hata."
