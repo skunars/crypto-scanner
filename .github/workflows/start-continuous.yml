@@ -20,4 +20,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run crypto-continuous.yml --ref main -f role=active -f duration_minutes=345 -f prepare_at_minutes=335
+          gh api repos/skunars/crypto-scanner/dispatches --method POST --input - <<'JSON'
+{"event_type":"crypto-continuous-start","client_payload":{"role":"active","duration_minutes":"345","prepare_at_minutes":"335"}}
+JSON
