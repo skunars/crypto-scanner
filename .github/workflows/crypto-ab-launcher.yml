@@ -1,0 +1,24 @@
+name: Crypto Scanner A-B Launcher
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start 345-minute A runner
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/dispatches \
+            -f event_type=crypto-continuous-start \
+            -f client_payload[role]=active \
+            -f client_payload[duration_minutes]=345 \
+            -f client_payload[prepare_at_minutes]=335
+          echo "A runner dispatch gönderildi."
