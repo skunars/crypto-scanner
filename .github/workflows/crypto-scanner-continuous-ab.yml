@@ -39,7 +39,7 @@ jobs:
       CHECKPOINT_SECONDS: "60"
       SCAN_SECONDS: "180"
       STANDBY_POLL_SECONDS: "10"
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets['CRYPTO_SCANNER_PAT'] }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       CODE_DECRYPTION_KEY: ${{ secrets.CODE_DECRYPTION_KEY }}
