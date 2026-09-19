@@ -2,36 +2,22 @@ name: Start Crypto Scanner Continuous
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
-  contents: write
+  contents: read
+  actions: write
 
 jobs:
   start:
+    if: contains(github.event.head_commit.message, '[START-345]')
     runs-on: ubuntu-latest
     steps:
-      - name: Check START-345 trigger
-        id: gate
-        shell: bash
-        run: |
-          set -euo pipefail
-          MESSAGE='${{ github.event.head_commit.message }}'
-          if [[ "$MESSAGE" == *"[START-345]"* ]]; then
-            echo "start=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "start=false" >> "$GITHUB_OUTPUT"
-            echo "No [START-345] marker; nothing to start."
-          fi
-
-      - name: Dispatch active 345-minute runner
-        if: steps.gate.outputs.start == 'true'
+      - name: Dispatch active A runner
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          echo "Dispatching active 345-minute runner..."
-          gh api repos/skunars/crypto-scanner/dispatches --method POST --input - <<'JSON'
-{"event_type":"crypto-continuous-start","client_payload":{"role":"active","duration_minutes":"345","prepare_at_minutes":"335"}}
-JSON
-          echo "repository_dispatch accepted by GitHub."
+          gh workflow run crypto-scanner-continuous-ab.yml             --repo "${{ github.repository }}"             --ref main             -f role=active             -f duration_minutes=345             -f prepare_at_minutes=335
+          echo "Active A runner dispatched."
