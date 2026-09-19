@@ -1,5 +1,6 @@
 name: Crypto Scanner Continuous A-B
 
+on:
   workflow_dispatch:
     inputs:
       role:
