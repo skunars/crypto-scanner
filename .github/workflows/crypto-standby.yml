@@ -1,15 +1,8 @@
 name: Crypto Scanner Standby
-# [START-345] Keep the A/B chain self-healing after each completed standby window.
 
 on:
   repository_dispatch:
     types: [crypto_standby]
-
-# Only one standby workflow may execute at a time.
-# A queued duplicate is rejected by continuous_runner.py when its parent generation is stale.
-concurrency:
-  group: crypto-scanner-standby-singleton
-  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -38,11 +31,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync latest main
-        run: |
-          git fetch origin main
-          git reset --hard origin/main
-
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -51,85 +39,28 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Telegram standby ready
+      - name: Telegram standby start
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            MSG="🔵 B hazır\\nStandby runner beklemede ve geçişi bekliyor."
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=🔵 Crypto Scanner B standby başladı."
           fi
 
-      - name: Run encrypted standby engine with handoff alert
-        run: |
-          set -u
-          env TELEGRAM_BOT_TOKEN="" TELEGRAM_CHAT_ID="" python secure_bootstrap.py &
-          ENGINE_PID=$!
-          HANDOFF_SENT=0
-          LAST_HEARTBEAT=$(date +%s)
-          while kill -0 "$ENGINE_PID" 2>/dev/null; do
-            NOW=$(date +%s)
-            if [ $((NOW - LAST_HEARTBEAT)) -ge 1800 ]; then
-              if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-                MSG="🟢 Crypto Scanner çalışıyor\\nRol: $RUNNER_ROLE\\nStandby motor hâlâ aktif."
-                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"                   --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
-              fi
-              LAST_HEARTBEAT=$NOW
-            fi
-            if [ "$HANDOFF_SENT" -eq 0 ] && [ -f data/runner_state.json ] && python - <<'PY'
-import json
-try:
-    s=json.load(open("data/runner_state.json"))
-    raise SystemExit(0 if s.get("takeover_claimed_at") else 1)
-except Exception:
-    raise SystemExit(1)
-PY
-            then
-              if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-                MSG="🟢 A→B geçiş tamamlandı\\nB runner devraldı."
-                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"                   --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
-              fi
-              HANDOFF_SENT=1
-            fi
-            sleep 10
-          done
-          wait "$ENGINE_PID"
+      - name: Run encrypted standby engine
+        run: python secure_bootstrap.py
 
       - name: Dispatch next active runner
         if: success()
         run: |
           set -euo pipefail
-          DISPATCHED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          gh workflow run crypto-scanner-continuous-ab.yml \
-            --repo "${{ github.repository }}" \
-            --ref main \
-            -f role=active \
-            -f duration_minutes=345 \
-            -f prepare_at_minutes=335
-          echo "Next active runner workflow_dispatch requested at $DISPATCHED_AT."
+          gh workflow run crypto-scanner-continuous-ab.yml             --repo "${{ github.repository }}"             --ref main             -f role=active             -f duration_minutes=345             -f prepare_at_minutes=335
+          echo "Next A runner dispatched."
 
-          echo "Waiting for the new active runner to appear..."
-          FOUND=0
-          for attempt in 1 2 3 4 5 6; do
-            sleep 10
-            RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/crypto-scanner-continuous-ab.yml/runs?event=workflow_dispatch&per_page=10"               --jq '.workflow_runs[] | select(.created_at >= "'$DISPATCHED_AT'") | .id' | head -n 1)
-            if [ -n "$RUN_ID" ]; then
-              echo "Next active runner confirmed: run_id=$RUN_ID"
-              FOUND=1
-              break
-            fi
-            echo "Active runner not visible yet (attempt $attempt/6)."
-          done
-          if [ "$FOUND" -ne 1 ]; then
-            echo "ERROR: next active runner was dispatched but could not be confirmed."
-            exit 1
-          fi
-
-      - name: Telegram next runner alert
+      - name: Telegram handoff alert
         if: success()
         continue-on-error: true
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            MSG="🔁 B→A geçiş başlatıldı\\nB tamamlandı, yeni A runner GitHub'a dispatch edildi."
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=🔁 B→A geçiş başlatıldı."
           fi
 
       - name: Telegram failure alert
@@ -137,47 +68,5 @@ PY
         continue-on-error: true
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-            MSG="🔴 Crypto Scanner DURDU / HATA\\nRol: $RUNNER_ROLE"
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}"               --data-urlencode "text=🔴 Crypto Scanner B durdu / hata."
           fi
-
-      - name: Record runner history
-        if: always()
-        continue-on-error: true
-        run: |
-          python runner_history.py
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/runner_history.jsonl
-          if git diff --cached --quiet; then
-            echo "No new runner history record"
-            exit 0
-          fi
-          git commit -m "Record continuous runner history"
-          for attempt in 1 2 3 4 5; do
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "Push conflict; refreshing main (attempt $attempt)"
-            git fetch origin main
-            git reset --hard origin/main
-            python runner_history.py
-            git add data/runner_history.jsonl
-            if git diff --cached --quiet; then
-              exit 0
-            fi
-            git commit -m "Record continuous runner history"
-          done
-          echo "History push failed after retries"
-          exit 1
-
-      - name: Final diagnostics
-        if: always()
-        run: |
-          echo "role=$RUNNER_ROLE"
-          echo "duration=$RUNNER_DURATION_MINUTES"
-          echo "prepare_at=$RUNNER_PREPARE_AT_MINUTES"
-          echo "parent_generation=$PARENT_GENERATION"
-          test ! -f data/runner_state.json || cat data/runner_state.json
-          test ! -f data/runner_history.jsonl || tail -n 5 data/runner_history.jsonl
-          git status --short
