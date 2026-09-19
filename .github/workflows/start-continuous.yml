@@ -1,0 +1,20 @@
+name: Start Crypto Scanner Continuous
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  start:
+    if: contains(github.event.head_commit.message, '[START-345]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch active 345-minute runner
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run crypto-continuous.yml --ref main -f role=active -f duration_minutes=345 -f prepare_at_minutes=335
