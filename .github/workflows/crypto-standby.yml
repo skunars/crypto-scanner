@@ -99,6 +99,7 @@ PY
           set -euo pipefail
           DISPATCHED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           gh workflow run crypto-scanner-continuous-ab.yml \
+            --repo "${{ github.repository }}" \
             --ref main \
             -f role=active \
             -f duration_minutes=345 \
