@@ -6,7 +6,7 @@ on:
 
 permissions:
   actions: write
-  contents: read
+  contents: write
 
 jobs:
   start:
@@ -20,6 +20,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          echo "Dispatching active 345-minute runner..." 
           gh api repos/skunars/crypto-scanner/dispatches --method POST --input - <<'JSON'
 {"event_type":"crypto-continuous-start","client_payload":{"role":"active","duration_minutes":"345","prepare_at_minutes":"335"}}
 JSON
+          echo "repository_dispatch accepted by GitHub."
