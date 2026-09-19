@@ -54,8 +54,7 @@ jobs:
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
             MSG="🔵 B hazır\\nStandby runner beklemede ve geçişi bekliyor."
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
           fi
 
       - name: Run encrypted standby engine with handoff alert
@@ -70,8 +69,7 @@ jobs:
             if [ $((NOW - LAST_HEARTBEAT)) -ge 1800 ]; then
               if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
                 MSG="🟢 Crypto Scanner çalışıyor\\nRol: $RUNNER_ROLE\\nStandby motor hâlâ aktif."
-                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-                  --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"                   --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
               fi
               LAST_HEARTBEAT=$NOW
             fi
@@ -86,8 +84,7 @@ PY
             then
               if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
                 MSG="🟢 A→B geçiş tamamlandı\\nB runner devraldı."
-                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-                  --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+                curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"                   --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
               fi
               HANDOFF_SENT=1
             fi
@@ -95,14 +92,30 @@ PY
           done
           wait "$ENGINE_PID"
 
+      - name: Dispatch next active runner
+        if: success()
+        run: |
+          set -euo pipefail
+          API="https://api.github.com/repos/${{ github.repository }}/actions/workflows/crypto-continuous.yml/dispatches"
+          curl -fsS --max-time 20 -X POST "$API"             -H "Accept: application/vnd.github+json"             -H "Authorization: Bearer ${GH_TOKEN}"             -H "X-GitHub-Api-Version: 2022-11-28"             -d '{"ref":"main","inputs":{"role":"active","duration_minutes":"345","prepare_at_minutes":"335"}}'
+          echo "Next active runner dispatch requested."
+
+      - name: Telegram next runner alert
+        if: success()
+        continue-on-error: true
+        run: |
+          if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+            MSG="🔁 B→A geçiş başlatıldı\\nB tamamlandı, yeni A runner GitHub'a dispatch edildi."
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+          fi
+
       - name: Telegram failure alert
         if: failure()
         continue-on-error: true
         run: |
           if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
             MSG="🔴 Crypto Scanner DURDU / HATA\\nRol: $RUNNER_ROLE"
-            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
+            curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"               --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=$MSG" || true
           fi
 
       - name: Record runner history
