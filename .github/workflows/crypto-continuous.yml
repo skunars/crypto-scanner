@@ -1,6 +1,8 @@
 name: Crypto Scanner Continuous A-B
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       role:
@@ -28,12 +30,9 @@ permissions:
   contents: write
   actions: write
 
-concurrency:
-  group: crypto-scanner-${{ inputs.role || github.event.client_payload.role || 'active' }}
-  cancel-in-progress: false
-
 jobs:
   continuous:
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[START-345]')
     runs-on: ubuntu-latest
     timeout-minutes: 360
     env:
