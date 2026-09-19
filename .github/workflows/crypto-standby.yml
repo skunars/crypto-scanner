@@ -1,4 +1,5 @@
 name: Crypto Scanner Standby
+# [START-345] Keep the A/B chain self-healing after each completed standby window.
 
 on:
   repository_dispatch:
