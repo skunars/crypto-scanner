@@ -84,6 +84,7 @@ jobs:
           ENGINE_PID=$!
           PREP_SENT=0
           HANDOFF_SENT=0
+          ENGINE_START=$(date +%s)
           LAST_HEARTBEAT=$(date +%s)
           while kill -0 "$ENGINE_PID" 2>/dev/null; do
             NOW=$(date +%s)
@@ -96,7 +97,8 @@ jobs:
               LAST_HEARTBEAT=$NOW
             fi
             if [ -f data/runner_state.json ]; then
-              if python - <<'PY'
+              # Give the engine time to write a fresh checkpoint after restart.
+              if [ $((NOW - ENGINE_START)) -ge 120 ] && python - <<'PY'
 import json, time
 from datetime import datetime, timezone
 try:
