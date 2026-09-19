@@ -21,13 +21,15 @@ on:
         required: false
         default: "335"
         type: string
+  repository_dispatch:
+    types: [crypto-continuous-start]
 
 permissions:
   contents: write
   actions: write
 
 concurrency:
-  group: crypto-scanner-${{ inputs.role || 'active' }}
+  group: crypto-scanner-${{ inputs.role || github.event.client_payload.role || 'active' }}
   cancel-in-progress: false
 
 jobs:
@@ -36,8 +38,8 @@ jobs:
     timeout-minutes: 360
     env:
       RUNNER_ROLE: ${{ inputs.role || 'active' }}
-      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || '345' }}
-      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || '335' }}
+      RUNNER_DURATION_MINUTES: ${{ inputs.duration_minutes || github.event.client_payload.duration_minutes || '345' }}
+      RUNNER_PREPARE_AT_MINUTES: ${{ inputs.prepare_at_minutes || github.event.client_payload.prepare_at_minutes || '335' }}
       CHECKPOINT_SECONDS: "60"
       SCAN_SECONDS: "180"
       STANDBY_POLL_SECONDS: "10"
