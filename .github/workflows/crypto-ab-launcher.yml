@@ -17,6 +17,7 @@ jobs:
         run: |
           set -euo pipefail
           gh workflow run crypto-scanner-continuous-ab.yml \
+            --repo "${{ github.repository }}" \
             --ref main \
             -f role=active \
             -f duration_minutes=345 \
